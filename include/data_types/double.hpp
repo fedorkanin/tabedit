@@ -10,6 +10,7 @@
 class Double : public DataTypeCRTP<Double> {
    public:
     Double(float value) : value_(value) {}
+    Double(std::string value) : value_(std::stod(value)) {}
 
     double value() const { return value_; }
 

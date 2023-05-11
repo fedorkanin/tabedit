@@ -10,6 +10,7 @@
 class Integer : public DataTypeCRTP<Integer> {
    public:
     Integer(int value) : value_(value) {}
+    Integer(std::string value) : value_(std::stoi(value)) {}
 
     int value() const { return value_; }
 
