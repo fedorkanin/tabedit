@@ -4,13 +4,16 @@
 
 class Parenthesis : public FormulaToken {
    public:
-    enum class Type { OPEN, CLOSE };
+    enum class State { OPEN, CLOSE };
 
-    Parenthesis(Type type) : type(type) {}
+    Parenthesis(State state) : state_(state) {}
     Parenthesis(char raw_parenthesis);
     Parenthesis(std::string raw_parenthesis)
         : Parenthesis(raw_parenthesis[0]) {}
-    std::string toString() const override;
 
-    Type type;
+    std::string toString() const override;
+    TokenType   getTokenType() const override { return TokenType::PARENTHESIS; }
+    State       getState() const { return state_; }
+
+    State state_;
 };

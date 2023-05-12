@@ -3,10 +3,10 @@
 Parenthesis::Parenthesis(char raw_parenthesis) {
     switch (raw_parenthesis) {
         case '(':
-            type = Type::OPEN;
+            state_ = State::OPEN;
             break;
         case ')':
-            type = Type::CLOSE;
+            state_ = State::CLOSE;
             break;
         default:
             throw std::runtime_error("Unknown parenthesis");
@@ -14,5 +14,5 @@ Parenthesis::Parenthesis(char raw_parenthesis) {
 }
 
 std::string Parenthesis::toString() const {
-    return type == Type::OPEN ? "(" : ")";
+    return state_ == State::OPEN ? "(" : ")";
 }

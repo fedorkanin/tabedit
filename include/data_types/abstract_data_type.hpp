@@ -19,4 +19,5 @@ class AbstractDataType : public FormulaToken {
         const Integer& data) const = 0;
     virtual std::unique_ptr<AbstractDataType> getSumConcrete(
         const Double& data) const = 0;
+    TokenType getTokenType() const override { return TokenType::NUMERIC; }
 };
