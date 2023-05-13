@@ -11,6 +11,7 @@
 class OperationFactory;
 
 class Operation : public FormulaToken {
+    friend class OperationFactory;
     using ADT            = AbstractDataType;
     using ADTptr         = std::unique_ptr<ADT>;
     using UnaryFunction  = std::function<ADTptr(const ADT&)>;
@@ -24,13 +25,6 @@ class Operation : public FormulaToken {
     ADTptr execute(const ADT& a) const;
     ADTptr execute(const ADT& a, const ADT& b) const;
 
-    Operation(UnaryFunction func, const std::string& name,
-              unsigned int priority)
-        : function_(func), name_(name), priority_(priority), arity_(1) {}
-    Operation(BinaryFunction func, const std::string& name,
-              unsigned int priority)
-        : function_(func), name_(name), priority_(priority), arity_(2) {}
-
    private:
     std::variant<UnaryFunction, BinaryFunction> function_;
     std::string                                 name_;
@@ -39,4 +33,11 @@ class Operation : public FormulaToken {
 
     ADTptr executeUnary(const ADT& a) const;
     ADTptr executeBinary(const ADT& a, const ADT& b) const;
+
+    Operation(UnaryFunction func, const std::string& name,
+              unsigned int priority)
+        : function_(func), name_(name), priority_(priority), arity_(1) {}
+    Operation(BinaryFunction func, const std::string& name,
+              unsigned int priority)
+        : function_(func), name_(name), priority_(priority), arity_(2) {}
 };

@@ -10,7 +10,9 @@ BinaryFunction addition = [](const ADT& a, const ADT& b) {
 };
 
 std::unique_ptr<Operation> OperationFactory::getOperation(std::string name) {
-    if (name == "+") return std::make_unique<Operation>(addition, name, 1);
+    // Operation constructor is private, can't use make_unique
+    if (name == "+")
+        return std::unique_ptr<Operation>(new Operation(addition, name, 1));
 
     throw std::runtime_error("Invalid operation name.");
 }
