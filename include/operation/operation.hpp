@@ -2,28 +2,30 @@
 
 #include <functional>
 #include <memory>
+#include <stdexcept>
+#include <string>
 #include <variant>
 
-#include "../data_types/abstract_data_type.hpp"
-#include "../formula_token.hpp"
-#include "../visitor_overloader.hpp"
+#include "../formula_token/data_types/abstract_data_type.hpp"
+#include "../formula_token/formula_tokens.hpp"
+#include "visitors/visitors.hpp"
 
 class OperationFactory;
 
 class Operation : public FormulaToken {
     friend class OperationFactory;
     using ADT            = AbstractDataType;
-    using ADTptr         = std::unique_ptr<ADT>;
-    using UnaryFunction  = std::function<ADTptr(const ADT&)>;
-    using BinaryFunction = std::function<ADTptr(const ADT&, const ADT&)>;
+    using UnaryFunction  = std::function<ADT(const ADT&)>;
+    using BinaryFunction = std::function<ADT(const ADT&, const ADT&)>;
 
    public:
     std::string  toString() const override { return name_; }
     TokenType    getTokenType() const override { return TokenType::OPERATION; }
     unsigned int getPriority() const { return priority_; }
+    unsigned int getArity() const { return arity_; }
 
-    ADTptr execute(const ADT& a) const;
-    ADTptr execute(const ADT& a, const ADT& b) const;
+    ADT execute(const ADT& a) const;
+    ADT execute(const ADT& a, const ADT& b) const;
 
    private:
     std::variant<UnaryFunction, BinaryFunction> function_;
@@ -31,8 +33,8 @@ class Operation : public FormulaToken {
     unsigned int                                priority_;
     unsigned int                                arity_;
 
-    ADTptr executeUnary(const ADT& a) const;
-    ADTptr executeBinary(const ADT& a, const ADT& b) const;
+    ADT executeUnary(const ADT& a) const;
+    ADT executeBinary(const ADT& a, const ADT& b) const;
 
     Operation(UnaryFunction func, const std::string& name,
               unsigned int priority)

@@ -1,25 +1,24 @@
-#include "operation/operation.hpp"
+#include "operation.hpp"
 
 using ADT            = AbstractDataType;
-using ADTptr         = std::unique_ptr<ADT>;
-using UnaryFunction  = std::function<ADTptr(const ADT&)>;
-using BinaryFunction = std::function<ADTptr(const ADT&, const ADT&)>;
+using UnaryFunction  = std::function<ADT(const ADT&)>;
+using BinaryFunction = std::function<ADT(const ADT&, const ADT&)>;
 
-ADTptr Operation::executeUnary(const ADT& a) const {
+ADT Operation::executeUnary(const ADT& a) const {
     return std::visit(
         VisitorOverloader{
             [&a](const UnaryFunction& op) { return op(a); },
-            [](const BinaryFunction&) -> ADTptr {
+            [](const BinaryFunction&) -> ADT {
                 throw std::runtime_error(
                     "Invalid operation type for unary operation.");
             }},
         function_);
 }
 
-ADTptr Operation::executeBinary(const ADT& a, const ADT& b) const {
+ADT Operation::executeBinary(const ADT& a, const ADT& b) const {
     return std::visit(
         VisitorOverloader{
-            [](const UnaryFunction&) -> ADTptr {
+            [](const UnaryFunction&) -> ADT {
                 throw std::runtime_error(
                     "Invalid operation type for binary operation.");
             },
@@ -27,13 +26,13 @@ ADTptr Operation::executeBinary(const ADT& a, const ADT& b) const {
         function_);
 }
 
-ADTptr Operation::execute(const ADT& a) const {
+ADT Operation::execute(const ADT& a) const {
     if (arity_ != 1)
         throw std::runtime_error("Invalid arity for unary operation.");
     return executeUnary(a);
 }
 
-ADTptr Operation::execute(const ADT& a, const ADT& b) const {
+ADT Operation::execute(const ADT& a, const ADT& b) const {
     if (arity_ != 2)
         throw std::runtime_error("Invalid arity for binary operation.");
     return executeBinary(a, b);

@@ -98,11 +98,11 @@ std::vector<std::unique_ptr<FormulaToken>> Formula::tokenize(
                 ++it;
             }
             if (number.find('.') != std::string::npos) {
-                tokenized_formula.push_back(
-                    std::make_unique<Double>(std::stod(number)));
+                tokenized_formula.emplace_back(
+                    std::make_unique<Double>(number));
             } else {
-                tokenized_formula.push_back(
-                    std::make_unique<Integer>(std::stoi(number)));
+                tokenized_formula.emplace_back(
+                    std::make_unique<Integer>(number));
             }
         } else if (*it == '(') {
             // Handle opening parenthesis
@@ -126,12 +126,64 @@ std::vector<std::unique_ptr<FormulaToken>> Formula::tokenize(
 
 std::string Formula::toString() const { return raw_formula_; }
 
-std::string Formula::dumpFull() const {
+std::string Formula::dumpFull(std::shared_ptr<Table> table) const {
     std::string output = "Formula: " + raw_formula_ + "\n";
     output += "RPN: ";
     for (auto& token : rpn_tokeinzed_) {
         output += token->toString() + " ";
     }
     output += "\n";
+    output +=
+        "Evaluation: " + std::visit(ToStringVisitor(), evaluate(table)) + "\n";
     return output;
+}
+
+AbstractDataType Formula::evaluate(std::shared_ptr<Table> table) const {
+    std::stack<AbstractDataType> stack;
+    for (auto& token : rpn_tokeinzed_) {
+        Operation* operation = nullptr;
+        switch (token->getTokenType()) {
+            case FormulaToken::TokenType::OPERATION:
+                operation = static_cast<Operation*>(token.get());
+                if (operation->getArity() == 1) {
+                    if (stack.size() < 1)
+                        throw std::runtime_error("Invalid formula");
+                    AbstractDataType operand = stack.top();
+                    stack.pop();
+                    stack.push(operation->execute(operand));
+                } else {
+                    if (stack.size() < 2)
+                        throw std::runtime_error("Invalid formula");
+                    AbstractDataType operand2 = stack.top();
+                    stack.pop();
+                    AbstractDataType operand1 = stack.top();
+                    stack.pop();
+                    stack.push(operation->execute(operand1, operand2));
+                }
+                break;
+            case FormulaToken::TokenType::CELL_COORD:
+                // TODO: Handle cell coordinates
+                throw std::runtime_error(
+                    "Cell coordinate evaluation not implemented");
+                break;
+            case FormulaToken::TokenType::INTEGER:
+                stack.push(
+                    Integer(static_cast<Integer*>(token.get())->getValue()));
+                break;
+            case FormulaToken::TokenType::DOUBLE:
+                stack.push(
+                    Double(static_cast<Double*>(token.get())->getValue()));
+                break;
+            case FormulaToken::TokenType::STRING:
+                stack.push(
+                    String(static_cast<String*>(token.get())->getValue()));
+            case FormulaToken::TokenType::PARENTHESIS:
+                throw std::runtime_error("Invalid formula");
+                break;
+        }
+    }
+    if (stack.size() != 1) {
+        throw std::runtime_error("Invalid formula");
+    }
+    return stack.top();
 }

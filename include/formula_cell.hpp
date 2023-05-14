@@ -3,23 +3,18 @@
 #include <string>
 
 #include "cell.hpp"
-#include "table.hpp"
+#include "formula.hpp"
+#include "formula_token/data_types/abstract_data_type.hpp"
 
 class FormulaCell : public Cell {
    public:
-    FormulaCell(std::string formula) : formula_(std::move(formula)) {
-        evaluate();
-    }
+    FormulaCell(std::string formula) : formula_(formula), value_(evaluate()) {}
 
-    std::unique_ptr<AbstractDataType> getValue() const override {
-        return value_->clone();
-    }
-    void evaluate() const {
-        // todo
-    }
+    AbstractDataType getValue() const override { return value_; }
+    AbstractDataType evaluate() const { formula_.evaluate(table_); }
 
    private:
-    std::string                       formula_;
-    std::unique_ptr<AbstractDataType> value_;
-    std::shared_ptr<Table>            table_;
+    Formula                formula_;
+    AbstractDataType       value_;
+    std::shared_ptr<Table> table_;
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "operation.hpp"
+#include "visitors/visitors.hpp"
 
 class OperationFactory {
    public:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "formula_token.hpp"
 
 class Parenthesis : public FormulaToken {

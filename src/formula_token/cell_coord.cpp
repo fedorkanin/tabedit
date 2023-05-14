@@ -1,4 +1,5 @@
 #include "cell_coord.hpp"
+
 #define ALPHABET_SIZE ('Z' - 'A' + 1)
 
 CellCoord::CellCoord(std::string raw_coord) {

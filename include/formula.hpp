@@ -2,16 +2,13 @@
 
 #include <memory>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include "cell_coord.hpp"
-#include "data_types/double.hpp"
-#include "data_types/integer.hpp"
-#include "formula_token.hpp"
-#include "operation/operation.hpp"
+#include "formula_token/formula_tokens.hpp"
 #include "operation/operation_factory.hpp"
-#include "parenthesis.hpp"
+#include "table.hpp"
 
 class Formula {
    public:
@@ -19,8 +16,9 @@ class Formula {
         : raw_formula_(raw_formula),
           rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
 
-    std::string toString() const;
-    std::string dumpFull() const;
+    std::string      toString() const;
+    std::string      dumpFull(std::shared_ptr<Table> table) const;
+    AbstractDataType evaluate(std::shared_ptr<Table> table) const;
 
    private:
     using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;

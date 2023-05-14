@@ -6,13 +6,10 @@
 
 class ValueCell : public Cell {
    public:
-    ValueCell(std::unique_ptr<AbstractDataType> value)
-        : value_(std::move(value)) {}
+    ValueCell(AbstractDataType value) : value_(std::move(value)) {}
 
-    std::unique_ptr<AbstractDataType> getValue() const override {
-        return value_->clone();
-    }
+    AbstractDataType getValue() const override { return value_; }
 
    private:
-    std::unique_ptr<AbstractDataType> value_;
+    AbstractDataType value_;
 };
