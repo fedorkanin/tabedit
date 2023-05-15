@@ -1,0 +1,40 @@
+Table editor specification.
+
+=========================== ABSTRACT ===========================
+This is a CLI table editor. Table cells may contain combinations of strings, 
+numberic data, cell coordinates, parentheses, and operators. Formulas are 
+evaluated dynamically as the table is edited.
+
+===========================POLYMORPHISM===========================
+Different polymorphic approaches are widely used in the code. 
+- Cell
+FormulaCell and ValueCell are derived from Cell. The names are self-explanatory.
+Both Cells can be evaluated, this is the main reason for the inheritance.
+- Formula and FormulaToken
+FormulaCell holds Formula, which is a vector of FormulaTokens. FormulaToken 
+can be a number, a cell reference, an operator, or a parenthesis. In order to
+avoid RTTI, every FormulaToken has a type, which can be accessed via 
+getTokenType method.
+- Basic data types and operations on them
+There are three types that actually directly hold data: string, double, and 
+integer. Mechanism of conducting operations polymorphically on these types is 
+the most integeresting part of the code. Patterns I considered
+    - RTTI via dynamic_cast (of course not)
+    - Double dispatch
+    - Double dispatch with visitor
+    - Visitor via std::variant and std::visit
+After considering pros and cons of each approach, I decided to use the last one.
+This design provides both type safety, speed and extensibility of operations.
+- Operation class
+In order to execute operations conviniently, an Operation class derived from
+FormulaToken was introduced. It holds an unary or binary std::function, which
+can be executed on AbstractDataType (std::variant of string, double, and int).
+The functions are created and passed in Operation via OperationFactory.
+- OperationFactory
+OperationFactory uses ...Visitor classes to create operations. It is planned to 
+be a singleton, right now it is just a static class.
+
+===========================CONCLUSION===========================
+I am trying to choose the most elegant and efficient solution for every problem.
+I am not sure if I succeeded, but I am sure that I learned a lot while doing this.
+I hope you will enjoy reading my code as much as I enjoyed writing it.
