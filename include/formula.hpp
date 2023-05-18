@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "formula_token/formula_tokens.hpp"
-#include "operation/operation_factory.hpp"
+#include "operation/operation_proxy.hpp"
 #include "table.hpp"
 
 class Formula {
@@ -27,5 +27,20 @@ class Formula {
     TokenVec    rpn_tokeinzed_;
 
     TokenVec tokenize(std::string raw_formula) const;
-    TokenVec toRPN(std::vector<std::unique_ptr<FormulaToken>> tokens) const;
+    TokenVec toRPN(TokenVec tokens) const;
+
+    static bool isOperator(char c);
+    static bool isParenthesis(char c);
+    static void handleOperator(
+        std::string::iterator&                      it,
+        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
+    static void handleAlpha(
+        std::string::iterator& it, const std::string::iterator& end,
+        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
+    static void handleNumeric(
+        std::string::iterator& it, const std::string::iterator& end,
+        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
+    static void handleParenthesis(
+        std::string::iterator&                      it,
+        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
 };

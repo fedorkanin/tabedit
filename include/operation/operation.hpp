@@ -12,15 +12,13 @@
 
 class OperationFactory;
 
-class Operation : public FormulaToken {
+class Operation {
     friend class OperationFactory;
-    using ADT            = AbstractDataType;
     using UnaryFunction  = std::function<ADT(const ADT&)>;
     using BinaryFunction = std::function<ADT(const ADT&, const ADT&)>;
 
    public:
-    std::string  toString() const override { return name_; }
-    TokenType    getTokenType() const override { return TokenType::OPERATION; }
+    std::string  toString() const { return name_; }
     unsigned int getPriority() const { return priority_; }
     unsigned int getArity() const { return arity_; }
 

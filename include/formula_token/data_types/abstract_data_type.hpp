@@ -8,4 +8,5 @@
 
 // namespace DataTypes {
 using AbstractDataType = std::variant<Integer, Double, String>;
+using ADT              = AbstractDataType;
 // }
