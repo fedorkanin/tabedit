@@ -145,7 +145,7 @@ void Formula::handleParenthesis(
 
 std::string Formula::toString() const { return raw_formula_; }
 
-std::string Formula::dumpFull(std::shared_ptr<Table> table) const {
+std::string Formula::dumpFull(CellTable* table) const {
     std::string output = "Formula: " + raw_formula_ + "\n";
     output += "RPN: ";
     for (auto& token : rpn_tokeinzed_) {
@@ -157,7 +157,7 @@ std::string Formula::dumpFull(std::shared_ptr<Table> table) const {
     return output;
 }
 
-AbstractDataType Formula::evaluate(std::shared_ptr<Table> table) const {
+AbstractDataType Formula::evaluate(CellTable* table) const {
     std::stack<AbstractDataType> stack;
     for (auto& token : rpn_tokeinzed_) {
         OperationProxy* operation = nullptr;

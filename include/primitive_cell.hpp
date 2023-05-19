@@ -4,9 +4,9 @@
 
 #include "cell.hpp"
 
-class ValueCell : public Cell {
+class PrimitiveCell : public Cell {
    public:
-    ValueCell(AbstractDataType value) : value_(std::move(value)) {}
+    PrimitiveCell(AbstractDataType value) : value_(std::move(value)) {}
 
     AbstractDataType getValue() const override { return value_; }
 

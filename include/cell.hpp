@@ -8,7 +8,7 @@
 #include "operation/visitors/to_string_visitor.hpp"
 
 class Cell {
-   protected:
+   public:
     Cell()                                    = default;
     virtual ~Cell()                           = default;
     virtual AbstractDataType getValue() const = 0;
@@ -16,5 +16,6 @@ class Cell {
         return std::visit(ToStringVisitor(), getValue());
     }
 
+   protected:
     std::vector<std::shared_ptr<Cell>> dependants_;
 };

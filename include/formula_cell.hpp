@@ -6,15 +6,18 @@
 #include "formula.hpp"
 #include "formula_token/data_types/abstract_data_type.hpp"
 
+class CellTable;
+
 class FormulaCell : public Cell {
    public:
-    FormulaCell(std::string formula) : formula_(formula), value_(evaluate()) {}
+    FormulaCell(std::string formula, CellTable* table)
+        : formula_(formula), value_(formula_.evaluate(table)), table_(table) {}
 
     AbstractDataType getValue() const override { return value_; }
-    AbstractDataType evaluate() const { formula_.evaluate(table_); }
+    void             evaluateFormula() const { formula_.evaluate(table_); }
 
    private:
-    Formula                formula_;
-    AbstractDataType       value_;
-    std::shared_ptr<Table> table_;
+    Formula          formula_;
+    AbstractDataType value_;
+    CellTable*       table_;
 };

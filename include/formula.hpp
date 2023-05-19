@@ -8,7 +8,8 @@
 
 #include "formula_token/formula_tokens.hpp"
 #include "operation/operation_proxy.hpp"
-#include "table.hpp"
+
+class CellTable;
 
 class Formula {
    public:
@@ -17,8 +18,8 @@ class Formula {
           rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
 
     std::string      toString() const;
-    std::string      dumpFull(std::shared_ptr<Table> table) const;
-    AbstractDataType evaluate(std::shared_ptr<Table> table) const;
+    std::string      dumpFull(CellTable* table) const;
+    AbstractDataType evaluate(CellTable* table) const;
 
    private:
     using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
@@ -29,6 +30,7 @@ class Formula {
     TokenVec tokenize(std::string raw_formula) const;
     TokenVec toRPN(TokenVec tokens) const;
 
+    // TODO: synchronize operators with operation factory
     static bool isOperator(char c);
     static bool isParenthesis(char c);
     static void handleOperator(
