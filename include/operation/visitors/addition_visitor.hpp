@@ -22,6 +22,10 @@ inline AbstractDataType AdditionVisitor::operator()(const T1& a,
         return Double(a.getValue() + b.getValue());
     else if constexpr (is_same_v<T1, String> && is_same_v<T2, String>)
         return String(a.getValue() + b.getValue());
+    else if constexpr (is_same_v<T1, String>)
+        return String(a.getValue() + std::to_string(b.getValue()));
+    else if constexpr (is_same_v<T2, String>)
+        return String(std::to_string(a.getValue()) + b.getValue());
     else
         throw std::invalid_argument(
             "Invalid operation: cannot add these types");

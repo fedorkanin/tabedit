@@ -12,20 +12,19 @@
 class CellTable;
 
 class Formula {
-   public:
-    Formula(std::string raw_formula)
-        : raw_formula_(raw_formula),
-          rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
-
-    std::string      toString() const;
-    std::string      dumpFull(CellTable* table) const;
-    AbstractDataType evaluate(CellTable* table) const;
-
-   private:
     using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
 
-    std::string raw_formula_;
-    TokenVec    rpn_tokeinzed_;
+   public:
+    Formula(std::string raw_formula)
+        : rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
+
+    // TODO: implement toString
+    std::string     toString() const { return "TOSTRING NOT IMPLEMENTED"; }
+    std::string     dumpFull(CellTable* table) const;
+    const TokenVec& getRPN() const { return rpn_tokeinzed_; }
+
+   private:
+    mutable TokenVec rpn_tokeinzed_;
 
     TokenVec tokenize(std::string raw_formula) const;
     TokenVec toRPN(TokenVec tokens) const;
@@ -44,5 +43,8 @@ class Formula {
         std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
     static void handleParenthesis(
         std::string::iterator&                      it,
+        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
+    static void handleString(
+        std::string::iterator& it, const std::string::iterator& end,
         std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
 };

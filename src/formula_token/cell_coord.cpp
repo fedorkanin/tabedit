@@ -19,9 +19,9 @@ std::pair<int, int> CellCoord::parseRawCoord(std::string raw_coord) {
     std::string row_str(first_digit_it, raw_coord.end());
 
     int col_num = 0;
-    for (char c : col_str) col_num = col_num * ALPHABET_SIZE + (c - 'A' + 1);
+    for (char c : col_str) col_num = col_num * ALPHABET_SIZE + (c - 'A');
 
-    return {col_num, std::stoi(row_str)};
+    return {col_num, std::stoi(row_str) - 1};
 }
 
 bool CellCoord::isValidCoord(std::string raw_coord) {
