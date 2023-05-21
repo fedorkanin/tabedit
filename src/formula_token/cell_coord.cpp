@@ -35,11 +35,11 @@ bool CellCoord::isValidCoord(std::string raw_coord) {
 
 std::string CellCoord::toString() const {
     std::string col_str;
-    int         col_num = col_;
+    int         col_num = col_ + 1;
     while (col_num > 0) {
         col_num--;
         col_str = static_cast<char>('A' + (col_num % ALPHABET_SIZE)) + col_str;
         col_num /= ALPHABET_SIZE;
     }
-    return col_str + std::to_string(row_);
+    return col_str + std::to_string(row_ + 1);
 }

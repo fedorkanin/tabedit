@@ -1,6 +1,8 @@
 #pragma once
 
+#include <algorithm>
 #include <iostream>
+#include <set>
 #include <vector>
 
 #include "../libs/tabulate.hpp"
@@ -18,9 +20,8 @@ class CellTable {
     std::shared_ptr<Cell>& at(CellCoord coord) {
         return at(coord.getRow(), coord.getCol());
     }
-
-    std::shared_ptr<Cell> at(size_t row, size_t col) const;
-    std::shared_ptr<Cell> at(CellCoord coord) const {
+    const std::shared_ptr<Cell>& at(size_t row, size_t col) const;
+    const std::shared_ptr<Cell>& at(CellCoord coord) const {
         return at(coord.getRow(), coord.getCol());
     }
 
@@ -30,14 +31,12 @@ class CellTable {
     void   growTo(size_t rows, size_t cols);
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
 
-    ADT parsePrimitive(std::string raw_value) const;
-    ADT getCellEvaluation(std::shared_ptr<Cell> cell);
-    ADT getCellEvaluation(size_t row, size_t col) {
-        return getCellEvaluation(at(row, col));
-    };
+    ADT  parsePrimitive(std::string raw_value) const;
+    void evaluateCell(CellCoord coord, int depth = 0);
 
    private:
-    // TODO: move from pointers to values for speed
+    void recalcDependants(CellCoord coord);
+    /// @todo move from pointers to values for speed
     std::vector<std::vector<std::shared_ptr<Cell>>> cells_;
 
     void insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell);

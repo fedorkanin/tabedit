@@ -8,12 +8,24 @@
 
 class CellCoord : public FormulaToken {
    public:
+    CellCoord() = default;
     CellCoord(std::string raw_coord);
+    CellCoord(unsigned int row, unsigned int col) : row_(row), col_(col) {}
     static bool  isValidCoord(std::string raw_coord);
     std::string  toString() const override;
     TokenType    getTokenType() const override { return TokenType::CELL_COORD; }
     unsigned int getRow() const { return row_; }
     unsigned int getCol() const { return col_; }
+    bool         operator==(const CellCoord& other) const {
+        return row_ == other.row_ && col_ == other.col_;
+    }
+    bool operator<(const CellCoord& other) const {
+        return row_ < other.row_ || (row_ == other.row_ && col_ < other.col_);
+    }
+    friend std::ostream& operator<<(std::ostream& os, const CellCoord& coord) {
+        os << coord.toString();
+        return os;
+    }
 
    private:
     unsigned int row_;

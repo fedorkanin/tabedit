@@ -13,7 +13,7 @@ class String : public FormulaToken {
     String(String&& other)            = default;
     String& operator=(String&& other) = default;
 
-    // TODO: const reference?
+    /// @todo: const reference?
     std::string getValue() const { return *value_; }
     std::string toString() const override { return *value_; }
     TokenType   getTokenType() const override { return TokenType::STRING; }

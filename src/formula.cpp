@@ -1,7 +1,7 @@
 #include "formula.hpp"
 using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
 
-// TODO: Rewrite exception messages
+/// @todo: Rewrite exception messages
 TokenVec Formula::toRPN(TokenVec tokens) const {
     TokenVec                                  output;
     std::stack<std::unique_ptr<FormulaToken>> stack;
@@ -124,9 +124,8 @@ void Formula::handleAlpha(std::string::iterator&       it,
 
     if (CellCoord::isValidCoord(raw_token))
         tokenized_formula.emplace_back(std::make_unique<CellCoord>(raw_token));
-    else {
+    else
         throw std::runtime_error("Unknown token in handleAlpha: " + raw_token);
-    }
 }
 
 void Formula::handleNumeric(std::string::iterator&       it,

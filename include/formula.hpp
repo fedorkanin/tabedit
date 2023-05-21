@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -18,18 +19,22 @@ class Formula {
     Formula(std::string raw_formula)
         : rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
 
-    // TODO: implement toString
+    /// @todo: implement toString
     std::string     toString() const { return "TOSTRING NOT IMPLEMENTED"; }
     std::string     dumpFull(CellTable* table) const;
     const TokenVec& getRPN() const { return rpn_tokeinzed_; }
+    bool            isDependentOn(const CellCoord& coord) const {
+        return dependent_on_.find(coord) != dependent_on_.end();
+    }
 
    private:
-    mutable TokenVec rpn_tokeinzed_;
+    mutable TokenVec    rpn_tokeinzed_;
+    std::set<CellCoord> dependent_on_;
 
     TokenVec tokenize(std::string raw_formula) const;
     TokenVec toRPN(TokenVec tokens) const;
 
-    // TODO: synchronize operators with operation factory
+    /// @todo: synchronize operators with operation factory
     static bool isOperator(char c);
     static bool isParenthesis(char c);
     static void handleOperator(

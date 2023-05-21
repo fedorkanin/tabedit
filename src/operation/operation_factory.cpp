@@ -20,6 +20,10 @@ BinaryFunction divFunc = [](const ADT& a, const ADT& b) {
     return std::visit(DivisionVisitor{}, a, b);
 };
 
+UnaryFunction sinFunc = [](const ADT& a) {
+    return std::visit(SinVisitor{}, a);
+};
+
 std::shared_ptr<Operation> OperationFactory::getOperation(std::string name) {
     // Operation constructor is private, can't use make_unique
     if (name == "+")
@@ -30,6 +34,8 @@ std::shared_ptr<Operation> OperationFactory::getOperation(std::string name) {
         return std::shared_ptr<Operation>(new Operation(mulFunc, name, 2));
     if (name == "/")
         return std::shared_ptr<Operation>(new Operation(divFunc, name, 2));
+    if (name == "sin")
+        return std::shared_ptr<Operation>(new Operation(sinFunc, name, 3));
 
     throw std::invalid_argument("OperationFactory::getOperation: " + name +
                                 " is not a valid operation");

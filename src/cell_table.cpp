@@ -14,12 +14,24 @@ CellTable::CellTable(
     }
 }
 
+std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) {
+    if (row >= getRows() || col >= getCols())
+        throw std::runtime_error("Index out of bounds");
+    return cells_[row][col];
+}
+
+const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
+    if (row >= getRows() || col >= getCols())
+        throw std::runtime_error("Index out of bounds");
+    return cells_[row][col];
+}
+
 ADT CellTable::parsePrimitive(std::string raw_value) const {
     // remove leading and trailing whitespace
     raw_value.erase(0, raw_value.find_first_not_of(' '));
     raw_value.erase(raw_value.find_last_not_of(' ') + 1);
 
-    // TODO: error handling in stod may not be preferable
+    /// @todo: error handling in stod may not be preferable
     if (raw_value[0] == '"' && raw_value[raw_value.size() - 1] == '"')
         return String(raw_value.substr(1, raw_value.size() - 2));
     else if (raw_value.find('.') != std::string::npos)
@@ -28,43 +40,53 @@ ADT CellTable::parsePrimitive(std::string raw_value) const {
         return Integer(std::stoi(raw_value));
 }
 
-std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) {
-    if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
-    return cells_[row][col];
-}
-
-std::shared_ptr<Cell> CellTable::at(size_t row, size_t col) const {
-    if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
-    return cells_[row][col];
-}
-
 void CellTable::setCell(size_t row, size_t col, std::string value) {
-    std::cout << "Setting cell " << row << ", " << col << " to " << value
-              << std::endl;
-
     if (row >= getRows() || col >= getCols())
         throw std::runtime_error("Index out of bounds");
     if (cells_[row][col] == nullptr)
         cells_[row][col] = std::make_shared<Cell>();
 
     auto cell_ptr = cells_[row][col];
-    if (value.empty() || value[0] != '=')
+    if (value.empty() || value[0] != '=') {  // primitive
         cell_ptr->setValue(parsePrimitive(value));
-    else {
-        cell_ptr->setFormula(value);
-        cell_ptr->setValue(getCellEvaluation(cell_ptr));
-    }
+        cell_ptr->deleteFormula();
+        recalcDependants(CellCoord(row, col));
+    } else {  // formula
+        // recalculate dependants_ member of referenced cells
+        Formula new_formula(value);
+        if (cell_ptr->hasFormula()) {
+            // get rpn
+            auto& rpn = cell_ptr->getFormula().getRPN();
 
-    // recalculate dependants
-    for (auto& dependant : cell_ptr->getDependants()) {
-        std::cout << "Recalculating dependants of " << at(row, col)->toString()
-                  << std::endl;
-        std::cout << "    " << dependant->toString() << std::endl;
-        dependant->setValue(getCellEvaluation(dependant));
-        std::cout << "After recalculation:" << std::endl;
-        std::cout << "    " << dependant->toString() << std::endl;
+            std::set<CellCoord> old_referenced_cells;
+            for (auto& token_ptr : rpn) {
+                if (token_ptr->getTokenType() ==
+                    FormulaToken::TokenType::CELL_COORD) {
+                    old_referenced_cells.insert(
+                        *static_cast<CellCoord*>(token_ptr.get()));
+                }
+            }
+
+            // remove new referenced cells from old referenced cells
+            for (auto& token_ptr : new_formula.getRPN()) {
+                if (token_ptr->getTokenType() ==
+                    FormulaToken::TokenType::CELL_COORD) {
+                    old_referenced_cells.erase(
+                        *static_cast<CellCoord*>(token_ptr.get()));
+                }
+            }
+
+            // remove cell from dependants_ member of removed referenced cells
+            for (auto& removed_referenced_cell : old_referenced_cells) {
+                std::cout << "Dependant removed from: "
+                          << removed_referenced_cell << std::endl;
+                at(removed_referenced_cell)
+                    ->removeDependant(CellCoord(row, col));
+            }
+        }
+
+        cell_ptr->setFormula(value);
+        evaluateCell(CellCoord(row, col));
     }
 }
 
@@ -74,10 +96,13 @@ void CellTable::growTo(size_t rows, size_t cols) {
     cells_.resize(rows, std::vector<std::shared_ptr<Cell>>(cols));
 }
 
-ADT CellTable::getCellEvaluation(std::shared_ptr<Cell> cell) {
-    std::cout << "Evaluating cell " << cell->toString() << std::endl;
+void CellTable::evaluateCell(CellCoord coord, int depth) {
+    if (depth > 1000)
+        throw std::runtime_error(
+            "Recursion depth exceeded while evaluating cell");
+    auto cell = at(coord);
     // if (cell->hasValue()) return cell->getValue().value();
-    // TODO: notype
+    /// @todo: notype
     if (!cell->hasFormula()) throw std::runtime_error("Evaluating empty cell");
 
     std::stack<ADT> stack;
@@ -109,10 +134,11 @@ ADT CellTable::getCellEvaluation(std::shared_ptr<Cell> cell) {
                 break;
             }
             case FormulaToken::TokenType::CELL_COORD: {
-                std::cout << "Evaluating cell coord" << std::endl;
+                auto referenced_cell_coord =
+                    *static_cast<CellCoord*>(token_ptr.get());
                 std::shared_ptr<Cell>& referenced_cell =
-                    at(*static_cast<CellCoord*>(token_ptr.get()));
-                // // TODO: handle circular references and non-existing cells
+                    at(referenced_cell_coord);
+                /// @todo: handle circular references and non-existing cells
                 if (!referenced_cell) {
                     cells_[static_cast<CellCoord*>(token_ptr.get())->getRow()]
                           [static_cast<CellCoord*>(token_ptr.get())->getCol()] =
@@ -122,14 +148,11 @@ ADT CellTable::getCellEvaluation(std::shared_ptr<Cell> cell) {
 
                 if (value_optional) {
                     stack.push(std::move(value_optional.value()));
-                    // stack.push(String("optional"));
                 } else {
-                    // TODO: implement notype in ADT
+                    /// @todo: implement notype in ADT
                     stack.push(String("notype"));
-                    // throw std::runtime_error(
-                    //     "Cell has no value while evaluating: ");
                 }
-                referenced_cell->addDependant(cell);
+                referenced_cell->addDependant(coord);
                 break;
             }
             case FormulaToken::TokenType::INTEGER: {
@@ -157,7 +180,18 @@ ADT CellTable::getCellEvaluation(std::shared_ptr<Cell> cell) {
     if (stack.size() != 1) {
         throw std::runtime_error("Invalid formula while evaluating: ");
     }
-    return stack.top();
+
+    cell->setValue(stack.top());
+    // reeval dependants
+    recalcDependants(coord);
+}
+
+void CellTable::recalcDependants(CellCoord coord) {
+    auto cell = at(coord);
+    for (auto& dependant : cell->getDependants()) {
+        std::cout << "Recalculating dependant: " << dependant << std::endl;
+        evaluateCell(dependant);
+    }
 }
 
 void CellTable::insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell) {
