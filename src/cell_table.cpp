@@ -16,13 +16,15 @@ CellTable::CellTable(
 
 std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) {
     if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
+        throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
+                                 " " + std::to_string(col));
     return cells_[row][col];
 }
 
 const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
     if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
+        throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
+                                 " " + std::to_string(col));
     return cells_[row][col];
 }
 
@@ -42,7 +44,8 @@ ADT CellTable::parsePrimitive(std::string raw_value) const {
 
 void CellTable::setCell(size_t row, size_t col, std::string value) {
     if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
+        throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
+                                 " " + std::to_string(col));
     if (value.empty()) {
         cells_[row][col] = nullptr;
         return;
@@ -82,8 +85,6 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
 
             // remove cell from dependants_ member of removed referenced cells
             for (auto& removed_referenced_cell : old_referenced_cells) {
-                std::cout << "Dependant removed from: "
-                          << removed_referenced_cell << std::endl;
                 at(removed_referenced_cell)
                     ->removeDependant(CellCoord(row, col));
             }
@@ -131,7 +132,6 @@ void CellTable::evaluateCellCoordToken(FormulaToken*    token_ptr,
                                        std::stack<ADT>& stack,
                                        CellCoord&       coord) {
     auto referenced_cell_coord = *static_cast<CellCoord*>(token_ptr);
-    std::cout << "Referenced cell: " << referenced_cell_coord << std::endl;
     std::shared_ptr<Cell>& referenced_cell = at(referenced_cell_coord);
     /// @todo: handle circular references and non-existing cells
     if (!referenced_cell) {
@@ -141,9 +141,6 @@ void CellTable::evaluateCellCoordToken(FormulaToken*    token_ptr,
     auto value_optional = referenced_cell->getValue();
 
     if (value_optional) {
-        std::cout << "Referenced cell value: "
-                  << std::visit(ToStringVisitor(), value_optional.value())
-                  << std::endl;
         stack.push(std::move(value_optional.value()));
     } else {
         stack.push(NoType());
@@ -213,17 +210,14 @@ void CellTable::evaluateCell(CellCoord coord, int depth) {
 
 void CellTable::recalcDependants(CellCoord coord, int depth) {
     auto cell = at(coord);
-    for (auto& dependant : cell->getDependants()) {
+    for (auto& dependant : cell->getDependants())
         evaluateCell(dependant, depth + 1);
-        // std::cout << "Recalculating dependant: " << dependant
-        //           << " value: " << at(dependant)->toString() <<
-        //           std::endl;
-    }
 }
 
 void CellTable::insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell) {
     if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds");
+        throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
+                                 ", " + std::to_string(col));
     cells_[row][col] = cell;
 }
 

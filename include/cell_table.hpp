@@ -25,7 +25,10 @@ class CellTable {
         return at(coord.getRow(), coord.getCol());
     }
 
-    void   setCell(size_t row, size_t col, std::string value);
+    void setCell(size_t row, size_t col, std::string value);
+    void setCell(CellCoord coord, std::string value) {
+        setCell(coord.getRow(), coord.getCol(), value);
+    }
     size_t getRows() const { return cells_.size(); }
     size_t getCols() const { return cells_.empty() ? 0 : cells_[0].size(); }
     void   growTo(size_t rows, size_t cols);

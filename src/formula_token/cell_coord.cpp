@@ -9,6 +9,10 @@ CellCoord::CellCoord(std::string raw_coord) {
 }
 
 std::pair<int, int> CellCoord::parseRawCoord(std::string raw_coord) {
+    // remove leading and trailing whitespace
+    raw_coord.erase(0, raw_coord.find_first_not_of(' '));
+    raw_coord.erase(raw_coord.find_last_not_of(' ') + 1);
+
     auto first_digit_it =
         std::find_if(raw_coord.begin(), raw_coord.end(), ::isdigit);
 
