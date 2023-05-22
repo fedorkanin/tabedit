@@ -37,3 +37,12 @@ ADT Operation::execute(const ADT& a, const ADT& b) const {
         throw std::runtime_error("Invalid arity for binary operation.");
     return executeBinary(a, b);
 }
+
+ADT Operation::execute(const std::vector<ADT>& args) const {
+    if (args.size() != arity_)
+        throw std::runtime_error("Invalid arity for operation.");
+    if (arity_ == 1)
+        return executeUnary(args[0]);
+    else
+        return executeBinary(args[0], args[1]);
+}

@@ -11,7 +11,8 @@ class FormulaToken {
         CELL_COORD,
         STRING,
         INTEGER,
-        DOUBLE
+        DOUBLE,
+        NOTYPE
     };
 
     virtual std::string toString() const     = 0;

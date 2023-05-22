@@ -29,13 +29,26 @@ class CellTable {
     size_t getRows() const { return cells_.size(); }
     size_t getCols() const { return cells_.empty() ? 0 : cells_[0].size(); }
     void   growTo(size_t rows, size_t cols);
+
+    void checkRecursionDepth(int depth);
+
+    std::shared_ptr<Cell> getCellAndCheckFormula(CellCoord coord);
+
+    void evaluateOperationToken(FormulaToken*    token_ptr,
+                                std::stack<ADT>& stack);
+
+    void evaluateCellCoordToken(FormulaToken* token_ptr, std::stack<ADT>& stack,
+                                CellCoord& coord);
+
+    void evaluateSimpleToken(FormulaToken* token_ptr, std::stack<ADT>& stack);
+
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
 
     ADT  parsePrimitive(std::string raw_value) const;
     void evaluateCell(CellCoord coord, int depth = 0);
 
    private:
-    void recalcDependants(CellCoord coord);
+    void recalcDependants(CellCoord coord, int depth = 0);
     /// @todo move from pointers to values for speed
     std::vector<std::vector<std::shared_ptr<Cell>>> cells_;
 

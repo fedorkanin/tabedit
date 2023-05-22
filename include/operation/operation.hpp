@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "../formula_token/data_types/abstract_data_type.hpp"
 #include "../formula_token/formula_tokens.hpp"
@@ -24,6 +25,7 @@ class Operation {
 
     ADT execute(const ADT& a) const;
     ADT execute(const ADT& a, const ADT& b) const;
+    ADT execute(const std::vector<ADT>& args) const;
 
    private:
     std::variant<UnaryFunction, BinaryFunction> function_;

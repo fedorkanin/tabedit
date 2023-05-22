@@ -14,6 +14,10 @@ class Integer : public FormulaToken {
     std::string toString() const override { return std::to_string(value_); }
     TokenType   getTokenType() const override { return TokenType::INTEGER; }
 
+    bool operator<(const long long& rhs) const { return value_ < rhs; }
+    bool operator>(const long long& rhs) const { return value_ > rhs; }
+    bool operator==(const long long& rhs) const { return value_ == rhs; }
+
    private:
     long long value_;
 };

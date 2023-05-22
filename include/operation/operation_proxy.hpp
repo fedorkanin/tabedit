@@ -18,6 +18,9 @@ class OperationProxy : public FormulaToken {
     ADT execute(const ADT& a, const ADT& b) const {
         return operation_->execute(a, b);
     }
+    ADT execute(const std::vector<ADT>& args) const {
+        return operation_->execute(args);
+    }
 
    private:
     std::shared_ptr<Operation> operation_;

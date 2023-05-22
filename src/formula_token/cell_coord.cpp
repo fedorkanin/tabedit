@@ -43,3 +43,14 @@ std::string CellCoord::toString() const {
     }
     return col_str + std::to_string(row_ + 1);
 }
+
+std::string CellCoord::getColName(unsigned int col) {
+    std::string col_str;
+    int         col_num = col + 1;
+    while (col_num > 0) {
+        col_num--;
+        col_str = static_cast<char>('A' + (col_num % ALPHABET_SIZE)) + col_str;
+        col_num /= ALPHABET_SIZE;
+    }
+    return col_str;
+}

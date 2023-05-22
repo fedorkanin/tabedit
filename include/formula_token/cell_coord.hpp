@@ -16,7 +16,8 @@ class CellCoord : public FormulaToken {
     TokenType    getTokenType() const override { return TokenType::CELL_COORD; }
     unsigned int getRow() const { return row_; }
     unsigned int getCol() const { return col_; }
-    bool         operator==(const CellCoord& other) const {
+    static std::string getColName(unsigned int col);
+    bool               operator==(const CellCoord& other) const {
         return row_ == other.row_ && col_ == other.col_;
     }
     bool operator<(const CellCoord& other) const {
