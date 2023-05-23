@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../formula_token/formula_tokens.hpp"
+#include "../libs/json.hpp"
 #include "operation.hpp"
 #include "operation_factory.hpp"
 
@@ -9,7 +10,6 @@ class OperationProxy : public FormulaToken {
     OperationProxy(std::string name)
         : operation_(OperationFactory::getOperation(name)) {}
 
-    std::string  toString() const override { return operation_->toString(); }
     TokenType    getTokenType() const override { return TokenType::OPERATION; }
     unsigned int getPriority() const { return operation_->getPriority(); }
     unsigned int getArity() const { return operation_->getArity(); }
@@ -21,6 +21,9 @@ class OperationProxy : public FormulaToken {
     ADT execute(const std::vector<ADT>& args) const {
         return operation_->execute(args);
     }
+    std::string toString() const override { return operation_->toString(); }
+    using json = nlohmann::json;
+    json toJSON() const override { return operation_->toJSON(); }
 
    private:
     std::shared_ptr<Operation> operation_;

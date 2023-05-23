@@ -16,3 +16,11 @@ Parenthesis::Parenthesis(char raw_parenthesis) {
 std::string Parenthesis::toString() const {
     return state_ == State::OPEN ? "(" : ")";
 }
+
+using json = nlohmann::json;
+json Parenthesis::toJSON() const {
+    json j;
+    j["type"]  = "parenthesis";
+    j["state"] = state_ == State::OPEN ? "open" : "close";
+    return j;
+}

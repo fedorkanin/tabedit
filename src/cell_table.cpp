@@ -28,6 +28,20 @@ const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
     return cells_[row][col];
 }
 
+using json = nlohmann::json;
+json CellTable::toJSON() const {
+    json j;
+    for (size_t row = 0; row < getRows(); ++row) {
+        for (size_t col = 0; col < getCols(); ++col) {
+            if (cells_[row][col] != nullptr) {
+                j[CellCoord::getColName(col) + std::to_string(row)] =
+                    cells_[row][col]->toJSON();
+            }
+        }
+    }
+    return j;
+}
+
 ADT CellTable::parsePrimitive(std::string raw_value) const {
     // remove leading and trailing whitespace
     raw_value.erase(0, raw_value.find_first_not_of(' '));
@@ -42,6 +56,27 @@ ADT CellTable::parsePrimitive(std::string raw_value) const {
         return Integer(std::stoi(raw_value));
 }
 
+std::set<CellCoord> CellTable::findOutdatedReferences(
+    const std::set<CellCoord>& old_references,
+    const std::set<CellCoord>& new_references) {
+    std::set<CellCoord> outdated_references;
+    std::set_difference(
+        old_references.begin(), old_references.end(), new_references.begin(),
+        new_references.end(),
+        std::inserter(outdated_references, outdated_references.begin()));
+    return outdated_references;
+}
+
+void CellTable::removeCoordFromDependants(CellCoord coord_to_remove,
+                                          const std::set<CellCoord>& cells) {
+    for (auto& cell : cells) {
+        auto& referenced_cell = at(cell);
+        referenced_cell->removeDependant(coord_to_remove);
+        std::cout << "Removed " << coord_to_remove << " from " << cell
+                  << std::endl;
+    }
+}
+
 void CellTable::setCell(size_t row, size_t col, std::string value) {
     if (row >= getRows() || col >= getCols())
         throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
@@ -54,45 +89,40 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
         cells_[row][col] = std::make_shared<Cell>();
 
     auto cell_ptr = cells_[row][col];
-    if (value[0] != '=') {  // primitive
+
+    try {
+        // try parse as primitive
         cell_ptr->setValue(parsePrimitive(value));
-        cell_ptr->deleteFormula();
         recalcDependants(CellCoord(row, col));
-    } else {  // formula
-        // recalculate dependants_ member of referenced cells
-        Formula new_formula(value);
-        if (cell_ptr->hasFormula()) {
-            // get rpn
-            auto& rpn = cell_ptr->getFormula().getRPN();
 
-            std::set<CellCoord> old_referenced_cells;
-            for (auto& token_ptr : rpn) {
-                if (token_ptr->getTokenType() ==
-                    FormulaToken::TokenType::CELL_COORD) {
-                    old_referenced_cells.insert(
-                        *static_cast<CellCoord*>(token_ptr.get()));
-                }
-            }
+        // value changed to primitive, fix old references
+        if (!cell_ptr->hasFormula()) return;
+        auto old_references = cell_ptr->getFormula().getReferencedCells();
+        removeCoordFromDependants(CellCoord(row, col), old_references);
 
-            // remove new referenced cells from old referenced cells
-            for (auto& token_ptr : new_formula.getRPN()) {
-                if (token_ptr->getTokenType() ==
-                    FormulaToken::TokenType::CELL_COORD) {
-                    old_referenced_cells.erase(
-                        *static_cast<CellCoord*>(token_ptr.get()));
-                }
-            }
+        cell_ptr->deleteFormula();
+        return;
+    } catch (std::invalid_argument&) {
+        // parse as formula
+    }
 
-            // remove cell from dependants_ member of removed referenced cells
-            for (auto& removed_referenced_cell : old_referenced_cells) {
-                at(removed_referenced_cell)
-                    ->removeDependant(CellCoord(row, col));
-            }
-        }
-
+    if (!cell_ptr->hasFormula()) {
         cell_ptr->setFormula(value);
         evaluateCell(CellCoord(row, col));
+        return;
     }
+
+    auto old_references = cell_ptr->getFormula().getReferencedCells();
+    cell_ptr->setFormula(value);
+    auto new_references = cell_ptr->getFormula().getReferencedCells();
+
+    // remove old dependants
+    std::set<CellCoord> outdated_references =
+        findOutdatedReferences(old_references, new_references);
+    // remove this cell from the dependants of outdated references
+    removeCoordFromDependants(CellCoord(row, col), outdated_references);
+
+    evaluateCell(CellCoord(row, col));
 }
 
 void CellTable::growTo(size_t rows, size_t cols) {
@@ -105,12 +135,6 @@ void CellTable::checkRecursionDepth(int depth) {
     if (depth > 1000)
         throw std::runtime_error(
             "Recursion depth exceeded while evaluating cell");
-}
-
-std::shared_ptr<Cell> CellTable::getCellAndCheckFormula(CellCoord coord) {
-    auto cell = at(coord);
-    if (!cell->hasFormula()) throw std::runtime_error("Evaluating empty cell");
-    return cell;
 }
 
 void CellTable::evaluateOperationToken(FormulaToken*    token_ptr,
@@ -175,7 +199,8 @@ void CellTable::evaluateSimpleToken(FormulaToken*    token_ptr,
 void CellTable::evaluateCell(CellCoord coord, int depth) {
     checkRecursionDepth(depth);
 
-    auto cell = getCellAndCheckFormula(coord);
+    auto cell = at(coord);
+    if (!cell->hasFormula()) throw std::runtime_error("Evaluating empty cell");
 
     std::stack<ADT> stack;
     for (auto& token_ptr : cell->getFormula().getRPN()) {

@@ -13,9 +13,10 @@ class Parenthesis : public FormulaToken {
     Parenthesis(std::string raw_parenthesis)
         : Parenthesis(raw_parenthesis[0]) {}
 
-    std::string toString() const override;
     TokenType   getTokenType() const override { return TokenType::PARENTHESIS; }
     State       getState() const { return state_; }
+    std::string toString() const override;
+    json        toJSON() const override;
 
     State state_;
 };

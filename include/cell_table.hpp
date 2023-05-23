@@ -5,6 +5,7 @@
 #include <set>
 #include <vector>
 
+#include "../libs/json.hpp"
 #include "../libs/tabulate.hpp"
 #include "cell.hpp"
 #include "formula_token/cell_coord.hpp"
@@ -26,6 +27,7 @@ class CellTable {
     }
 
     void setCell(size_t row, size_t col, std::string value);
+
     void setCell(CellCoord coord, std::string value) {
         setCell(coord.getRow(), coord.getCol(), value);
     }
@@ -33,19 +35,9 @@ class CellTable {
     size_t getCols() const { return cells_.empty() ? 0 : cells_[0].size(); }
     void   growTo(size_t rows, size_t cols);
 
-    void checkRecursionDepth(int depth);
-
-    std::shared_ptr<Cell> getCellAndCheckFormula(CellCoord coord);
-
-    void evaluateOperationToken(FormulaToken*    token_ptr,
-                                std::stack<ADT>& stack);
-
-    void evaluateCellCoordToken(FormulaToken* token_ptr, std::stack<ADT>& stack,
-                                CellCoord& coord);
-
-    void evaluateSimpleToken(FormulaToken* token_ptr, std::stack<ADT>& stack);
-
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
+    using json = nlohmann::json;
+    json toJSON() const;
 
     ADT  parsePrimitive(std::string raw_value) const;
     void evaluateCell(CellCoord coord, int depth = 0);
@@ -56,4 +48,15 @@ class CellTable {
     std::vector<std::vector<std::shared_ptr<Cell>>> cells_;
 
     void insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell);
+    void checkRecursionDepth(int depth);
+    void evaluateOperationToken(FormulaToken*    token_ptr,
+                                std::stack<ADT>& stack);
+    void evaluateCellCoordToken(FormulaToken* token_ptr, std::stack<ADT>& stack,
+                                CellCoord& coord);
+    void evaluateSimpleToken(FormulaToken* token_ptr, std::stack<ADT>& stack);
+    std::set<CellCoord> findOutdatedReferences(
+        const std::set<CellCoord>& old_references,
+        const std::set<CellCoord>& new_references);
+    void removeCoordFromDependants(CellCoord                  coord_to_remove,
+                                   const std::set<CellCoord>& cells);
 };

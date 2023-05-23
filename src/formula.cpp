@@ -57,12 +57,56 @@ TokenVec Formula::toRPN(TokenVec tokens) const {
     return output;
 }
 
+std::set<CellCoord> Formula::getReferencedCells() const {
+    std::set<CellCoord> referenced_cells;
+    for (auto& token : rpn_tokeinzed_) {
+        if (token->getTokenType() == FormulaToken::TokenType::CELL_COORD) {
+            referenced_cells.insert(*static_cast<CellCoord*>(token.get()));
+        }
+    }
+    return referenced_cells;
+}
+
+using json = nlohmann::json;
+json Formula::toJSON() const {
+    json j;
+    for (auto& token : rpn_tokeinzed_) {
+        switch (token->getTokenType()) {
+            case FormulaToken::TokenType::OPERATION:
+                j["operation"] =
+                    static_cast<OperationProxy*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::PARENTHESIS:
+                j["parenthesis"] =
+                    static_cast<Parenthesis*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::CELL_COORD:
+                j["cell_coord"] =
+                    static_cast<CellCoord*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::STRING:
+                j["string"] = static_cast<String*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::INTEGER:
+                j["integer"] = static_cast<Integer*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::DOUBLE:
+                j["double"] = static_cast<Double*>(token.get())->toJSON();
+                break;
+            case FormulaToken::TokenType::NOTYPE:
+                j["notype"] = static_cast<NoType*>(token.get())->toJSON();
+                break;
+        }
+    }
+    return j;
+}
+
 TokenVec Formula::tokenize(std::string raw_formula) const {
     std::string::iterator it = raw_formula.begin();
     TokenVec              tokenized_formula;
-    if (raw_formula[0] != '=')
-        throw std::runtime_error("Formula must start with '='");
-    ++it;
+    // if (raw_formula[0] != '=')
+    //     throw std::runtime_error("Formula must start with '='");
+    // ++it;
 
     while (it != raw_formula.end()) {
         if (isOperator(*it)) {

@@ -9,6 +9,7 @@
 
 #include "../formula_token/data_types/abstract_data_type.hpp"
 #include "../formula_token/formula_tokens.hpp"
+#include "../libs/json.hpp"
 #include "visitors/visitors.hpp"
 
 class OperationFactory;
@@ -19,13 +20,15 @@ class Operation {
     using BinaryFunction = std::function<ADT(const ADT&, const ADT&)>;
 
    public:
-    std::string  toString() const { return name_; }
     unsigned int getPriority() const { return priority_; }
     unsigned int getArity() const { return arity_; }
 
-    ADT execute(const ADT& a) const;
-    ADT execute(const ADT& a, const ADT& b) const;
-    ADT execute(const std::vector<ADT>& args) const;
+    ADT         execute(const ADT& a) const;
+    ADT         execute(const ADT& a, const ADT& b) const;
+    ADT         execute(const std::vector<ADT>& args) const;
+    std::string toString() const { return name_; }
+    using json = nlohmann::json;
+    json toJSON() const;
 
    private:
     std::variant<UnaryFunction, BinaryFunction> function_;

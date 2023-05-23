@@ -1,6 +1,9 @@
 #pragma once
 
+#include <iostream>
 #include <string>
+
+#include "../../libs/json.hpp"
 
 class FormulaToken {
    public:
@@ -15,6 +18,8 @@ class FormulaToken {
         NOTYPE
     };
 
-    virtual std::string toString() const     = 0;
-    virtual TokenType   getTokenType() const = 0;
+    virtual std::string toString() const   = 0;
+    using json                             = nlohmann::json;
+    virtual json      toJSON() const       = 0;
+    virtual TokenType getTokenType() const = 0;
 };

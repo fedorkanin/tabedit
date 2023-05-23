@@ -12,6 +12,7 @@ class OperationFactory {
         return getOperation(std::string(1, name));
     }
 
+    /// @todo Use the map in operation factory!
     static std::unordered_map<std::string, std::shared_ptr<Operation>>
         operations_;
 };

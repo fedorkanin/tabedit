@@ -11,8 +11,9 @@ class Integer : public FormulaToken {
 
     long long getValue() const { return value_; }
 
-    std::string toString() const override { return std::to_string(value_); }
     TokenType   getTokenType() const override { return TokenType::INTEGER; }
+    std::string toString() const override { return std::to_string(value_); }
+    json      toJSON() const override;
 
     bool operator<(const long long& rhs) const { return value_ < rhs; }
     bool operator>(const long long& rhs) const { return value_ > rhs; }

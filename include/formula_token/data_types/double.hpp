@@ -11,8 +11,9 @@ class Double : public FormulaToken {
 
     double getValue() const { return value_; }
 
-    std::string toString() const override { return std::to_string(value_); }
     TokenType   getTokenType() const override { return TokenType::DOUBLE; }
+    std::string toString() const override { return std::to_string(value_); }
+    json        toJSON() const override;
 
    private:
     double value_;

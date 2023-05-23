@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "../libs/json.hpp"
 #include "formula_token/formula_tokens.hpp"
 #include "operation/operation_proxy.hpp"
 
@@ -20,12 +21,15 @@ class Formula {
         : rpn_tokeinzed_(toRPN(tokenize(raw_formula))) {}
 
     /// @todo: implement toString
-    std::string     toString() const { return "TOSTRING NOT IMPLEMENTED"; }
     std::string     dumpFull(CellTable* table) const;
     const TokenVec& getRPN() const { return rpn_tokeinzed_; }
     bool            isDependentOn(const CellCoord& coord) const {
         return dependent_on_.find(coord) != dependent_on_.end();
     }
+    std::set<CellCoord> getReferencedCells() const;
+    std::string         toString() const { return "TOSTRING NOT IMPLEMENTED"; }
+    using json = nlohmann::json;
+    json toJSON() const;
 
    private:
     mutable TokenVec    rpn_tokeinzed_;

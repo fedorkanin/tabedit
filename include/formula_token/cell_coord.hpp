@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
@@ -27,6 +28,8 @@ class CellCoord : public FormulaToken {
         os << coord.toString();
         return os;
     }
+    using json = nlohmann::json;
+    json toJSON() const override;
 
    private:
     unsigned int row_;
