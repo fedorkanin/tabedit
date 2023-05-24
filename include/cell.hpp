@@ -24,7 +24,7 @@ class Cell {
     bool hasValue() const { return value_.has_value(); }
     bool hasFormula() const { return formula_ptr_ != nullptr; }
 
-    const std::optional<ADT>& getValue() const { return value_; }
+    const std::optional<ADT>& getOptionalValue() const { return value_; }
     void                      setValue(ADT value) { value_ = std::move(value); }
     void                      setFormula(std::unique_ptr<Formula> formula) {
         formula_ptr_ = std::move(formula);
@@ -34,6 +34,7 @@ class Cell {
     }
     const Formula&      getFormula() const { return *formula_ptr_; }
     std::set<CellCoord> getReferencedCells() const;
+    std::string         dump() const;
 
     void deleteValue() { value_.reset(); }
     void deleteFormula() { formula_ptr_.reset(); }
@@ -41,17 +42,16 @@ class Cell {
         dependants_.emplace(std::move(coord));
     }
     const std::set<CellCoord>& getDependants() const { return dependants_; }
+    bool hasDependants() const { return !dependants_.empty(); }
     void removeDependant(CellCoord coord) { dependants_.erase(coord); }
     bool isDependentOn(const CellCoord& coord) const {
         return formula_ptr_ ? formula_ptr_->isDependentOn(coord) : false;
     }
 
     std::string toString() const;
-    using json = nlohmann::json;
-    json toJSON() const;
+    friend void to_json(nlohmann::json& j, const Cell& c);
 
    private:
-    /// @todo: get rid of optional
     std::optional<ADT>       value_;
     std::unique_ptr<Formula> formula_ptr_;
     std::set<CellCoord>      dependants_;

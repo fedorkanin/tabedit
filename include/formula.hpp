@@ -27,16 +27,19 @@ class Formula {
         return dependent_on_.find(coord) != dependent_on_.end();
     }
     std::set<CellCoord> getReferencedCells() const;
-    std::string         toString() const { return "TOSTRING NOT IMPLEMENTED"; }
-    using json = nlohmann::json;
-    json toJSON() const;
+    std::string         toString() const;
+
+    friend void to_json(nlohmann::json& j, const Formula& f) {
+        j = f.toString();
+    }
 
    private:
     mutable TokenVec    rpn_tokeinzed_;
     std::set<CellCoord> dependent_on_;
 
-    TokenVec tokenize(std::string raw_formula) const;
-    TokenVec toRPN(TokenVec tokens) const;
+    TokenVec    tokenize(std::string raw_formula) const;
+    TokenVec    toRPN(TokenVec tokens) const;
+    std::string RPNtoNormal(const TokenVec& tokens) const;
 
     /// @todo: synchronize operators with operation factory
     static bool isOperator(char c);

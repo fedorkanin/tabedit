@@ -28,20 +28,6 @@ const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
     return cells_[row][col];
 }
 
-using json = nlohmann::json;
-json CellTable::toJSON() const {
-    json j;
-    for (size_t row = 0; row < getRows(); ++row) {
-        for (size_t col = 0; col < getCols(); ++col) {
-            if (cells_[row][col] != nullptr) {
-                j[CellCoord::getColName(col) + std::to_string(row)] =
-                    cells_[row][col]->toJSON();
-            }
-        }
-    }
-    return j;
-}
-
 ADT CellTable::parsePrimitive(std::string raw_value) const {
     // remove leading and trailing whitespace
     raw_value.erase(0, raw_value.find_first_not_of(' '));
@@ -72,8 +58,6 @@ void CellTable::removeCoordFromDependants(CellCoord coord_to_remove,
     for (auto& cell : cells) {
         auto& referenced_cell = at(cell);
         referenced_cell->removeDependant(coord_to_remove);
-        std::cout << "Removed " << coord_to_remove << " from " << cell
-                  << std::endl;
     }
 }
 
@@ -82,9 +66,16 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
         throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
                                  " " + std::to_string(col));
     if (value.empty()) {
-        cells_[row][col] = nullptr;
+        // cells_[row][col] = nullptr;
+        if (cells_[row][col] == nullptr || !cells_[row][col]->hasDependants()) {
+            cells_[row][col] = nullptr;
+            return;
+        }
+        cells_[row][col]->deleteValue();
+        cells_[row][col]->deleteFormula();
         return;
     }
+
     if (cells_[row][col] == nullptr)
         cells_[row][col] = std::make_shared<Cell>();
 
@@ -162,13 +153,15 @@ void CellTable::evaluateCellCoordToken(FormulaToken*    token_ptr,
         cells_[referenced_cell_coord.getRow()][referenced_cell_coord.getCol()] =
             std::make_shared<Cell>();
     }
-    auto value_optional = referenced_cell->getValue();
+    auto value_optional = referenced_cell->getOptionalValue();
 
     if (value_optional) {
         stack.push(std::move(value_optional.value()));
     } else {
         stack.push(NoType());
     }
+
+    /// @todo handle dependant addition in setCell
     referenced_cell->addDependant(coord);
 }
 
@@ -272,4 +265,19 @@ std::ostream& operator<<(std::ostream& os, const CellTable& table) {
     // out_table[1][1].format().width(20);
     os << out_table << std::endl;
     return os;
+}
+
+void to_json(nlohmann::json& j, const CellTable& table) {
+    j = nlohmann::json::array();
+    for (size_t row = 0; row < table.getRows(); ++row) {
+        for (size_t col = 0; col < table.getCols(); ++col) {
+            auto cell = table.at(row, col);
+            if (!cell) continue;
+
+            nlohmann::json cell_json{
+                {CellCoord::getColName(col) + std::to_string(row), *cell}};
+            // cell_json = *cell;
+            j.push_back(cell_json);
+        }
+    }
 }

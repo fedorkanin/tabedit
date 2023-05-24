@@ -36,8 +36,7 @@ class CellTable {
     void   growTo(size_t rows, size_t cols);
 
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
-    using json = nlohmann::json;
-    json toJSON() const;
+    friend void          to_json(nlohmann::json& j, const CellTable& table);
 
     ADT  parsePrimitive(std::string raw_value) const;
     void evaluateCell(CellCoord coord, int depth = 0);

@@ -13,7 +13,7 @@ class Integer : public FormulaToken {
 
     TokenType   getTokenType() const override { return TokenType::INTEGER; }
     std::string toString() const override { return std::to_string(value_); }
-    json      toJSON() const override;
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Integer, value_);
 
     bool operator<(const long long& rhs) const { return value_ < rhs; }
     bool operator>(const long long& rhs) const { return value_ > rhs; }

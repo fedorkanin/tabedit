@@ -5,8 +5,21 @@ std::set<CellCoord> Cell::getReferencedCells() const {
                         : std::set<CellCoord>();
 }
 
+std::string Cell::dump() const {
+    std::string result;
+    // value and formula if present
+    if (hasValue()) result += std::visit(ToStringVisitor(), value_.value());
+    if (hasFormula()) result += "=" + formula_ptr_->toString();
+    if (result.empty()) result = "Empty cell\n";
+    if (hasDependants()) {
+        result += " dependants: ";
+        for (const auto& dependant : dependants_)
+            result += dependant.toString() + " ";
+    }
+    return result;
+}
+
 std::string Cell::toString() const {
-    // if (hasValue()) return std::visit(ToStringVisitor(), value_.value());
     if (hasValue()) {
         auto value = value_.value();
         return std::visit(ToStringVisitor(), value);
@@ -15,10 +28,12 @@ std::string Cell::toString() const {
     return "";
 }
 
-using json = nlohmann::json;
-json Cell::toJSON() const {
-    if (hasFormula()) return {{"formula", formula_ptr_->toJSON()}};
-    if (hasValue())
-        return {{"value", std::visit(ToJSONVisitor(), value_.value())}};
-    throw std::runtime_error("Cell has neither formula nor value");
+void to_json(nlohmann::json& j, const Cell& c) {
+    if (c.hasFormula()) {
+        j = c.getFormula();
+    } else if (c.hasValue()) {
+        j = std::visit(ToJSONVisitor(), c.getOptionalValue().value());
+    } else {
+        j = nullptr;
+    }
 }

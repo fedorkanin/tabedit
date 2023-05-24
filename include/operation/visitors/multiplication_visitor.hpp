@@ -44,6 +44,7 @@ inline AbstractDataType MultiplicationVisitor::operator()(const T1& a,
         return NoType();
     } else {
         throw std::invalid_argument(
-            "Invalid operation: cannot multiply these types");
+            "Invalid operation: cannot multiply these types: " + a.toString() +
+            " and " + b.toString());
     }
 }

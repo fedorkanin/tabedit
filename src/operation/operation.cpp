@@ -46,10 +46,3 @@ ADT Operation::execute(const std::vector<ADT>& args) const {
     else
         return executeBinary(args[0], args[1]);
 }
-
-using json = nlohmann::json;
-json Operation::toJSON() const {
-    json j;
-    j["name"] = name_;
-    return j;
-}

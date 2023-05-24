@@ -8,14 +8,6 @@ CellCoord::CellCoord(std::string raw_coord) {
     row_                             = parsed_coord.second;
 }
 
-using json = nlohmann::json;
-json CellCoord::toJSON() const {
-    json j;
-    j["row"] = row_;
-    j["col"] = col_;
-    return j;
-}
-
 std::pair<int, int> CellCoord::parseRawCoord(std::string raw_coord) {
     // remove leading and trailing whitespace
     raw_coord.erase(0, raw_coord.find_first_not_of(' '));

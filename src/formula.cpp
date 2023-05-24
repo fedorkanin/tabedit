@@ -1,7 +1,6 @@
 #include "formula.hpp"
 using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
 
-/// @todo: Rewrite exception messages
 TokenVec Formula::toRPN(TokenVec tokens) const {
     TokenVec                                  output;
     std::stack<std::unique_ptr<FormulaToken>> stack;
@@ -35,7 +34,7 @@ TokenVec Formula::toRPN(TokenVec tokens) const {
                 }
                 if (stack.empty()) {
                     throw std::runtime_error(
-                        "Mismatched parenthesis in formula: ");
+                        "Mismatched parenthesis in formula: " + toString());
                 }
                 stack.pop();
             }
@@ -48,13 +47,56 @@ TokenVec Formula::toRPN(TokenVec tokens) const {
     while (!stack.empty()) {
         if (stack.top()->getTokenType() ==
             FormulaToken::TokenType::PARENTHESIS) {
-            throw std::runtime_error("Mismatched parenthesis in formula: ");
+            throw std::runtime_error("Mismatched parenthesis in formula: " +
+                                     toString());
         }
         output.push_back(std::move(stack.top()));
         stack.pop();
     }
 
     return output;
+}
+
+std::string Formula::RPNtoNormal(const TokenVec& tokens) const {
+    std::stack<std::string> stack;
+
+    for (auto& token : tokens) {
+        if (token->getTokenType() == FormulaToken::TokenType::OPERATION) {
+            int arity = static_cast<OperationProxy*>(token.get())->getArity();
+            if (stack.size() < static_cast<size_t>(arity)) {
+                throw std::runtime_error(
+                    "Invalid RPN expression: insufficient operands for "
+                    "operation");
+            }
+
+            std::vector<std::string> operands(arity);
+            for (int i = arity - 1; i >= 0; --i) {
+                operands[i] = std::move(stack.top());
+                stack.pop();
+            }
+
+            std::string expression;
+            if (arity == 1) {
+                // unary operator
+                expression = token->toString() + " " + operands[0];
+            } else if (arity == 2) {
+                // binary operator
+                expression = "(" + operands[0] + " " + token->toString() + " " +
+                             operands[1] + ")";
+            }
+
+            stack.push(std::move(expression));
+
+        } else {
+            stack.push(token->toString());
+        }
+    }
+
+    if (stack.size() != 1) {
+        throw std::runtime_error("Invalid RPN expression: too many operands");
+    }
+
+    return stack.top();
 }
 
 std::set<CellCoord> Formula::getReferencedCells() const {
@@ -67,46 +109,11 @@ std::set<CellCoord> Formula::getReferencedCells() const {
     return referenced_cells;
 }
 
-using json = nlohmann::json;
-json Formula::toJSON() const {
-    json j;
-    for (auto& token : rpn_tokeinzed_) {
-        switch (token->getTokenType()) {
-            case FormulaToken::TokenType::OPERATION:
-                j["operation"] =
-                    static_cast<OperationProxy*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::PARENTHESIS:
-                j["parenthesis"] =
-                    static_cast<Parenthesis*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::CELL_COORD:
-                j["cell_coord"] =
-                    static_cast<CellCoord*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::STRING:
-                j["string"] = static_cast<String*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::INTEGER:
-                j["integer"] = static_cast<Integer*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::DOUBLE:
-                j["double"] = static_cast<Double*>(token.get())->toJSON();
-                break;
-            case FormulaToken::TokenType::NOTYPE:
-                j["notype"] = static_cast<NoType*>(token.get())->toJSON();
-                break;
-        }
-    }
-    return j;
-}
+std::string Formula::toString() const { return RPNtoNormal(rpn_tokeinzed_); }
 
 TokenVec Formula::tokenize(std::string raw_formula) const {
     std::string::iterator it = raw_formula.begin();
     TokenVec              tokenized_formula;
-    // if (raw_formula[0] != '=')
-    //     throw std::runtime_error("Formula must start with '='");
-    // ++it;
 
     while (it != raw_formula.end()) {
         if (isOperator(*it)) {

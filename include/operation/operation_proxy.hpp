@@ -1,7 +1,7 @@
 #pragma once
 
+#include "../../libs/json.hpp"
 #include "../formula_token/formula_tokens.hpp"
-#include "../libs/json.hpp"
 #include "operation.hpp"
 #include "operation_factory.hpp"
 
@@ -22,8 +22,10 @@ class OperationProxy : public FormulaToken {
         return operation_->execute(args);
     }
     std::string toString() const override { return operation_->toString(); }
-    using json = nlohmann::json;
-    json toJSON() const override { return operation_->toJSON(); }
+
+    friend void to_json(nlohmann::json& j, const OperationProxy& p) {
+        j = nlohmann::json(*p.operation_);
+    }
 
    private:
     std::shared_ptr<Operation> operation_;

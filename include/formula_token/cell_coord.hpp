@@ -28,8 +28,10 @@ class CellCoord : public FormulaToken {
         os << coord.toString();
         return os;
     }
-    using json = nlohmann::json;
-    json toJSON() const override;
+
+    friend void to_json(nlohmann::json& j, const CellCoord& p) {
+        j = nlohmann::json(p.toString());
+    }
 
    private:
     unsigned int row_;
