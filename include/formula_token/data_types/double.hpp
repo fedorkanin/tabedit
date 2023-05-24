@@ -13,7 +13,9 @@ class Double : public FormulaToken {
 
     TokenType   getTokenType() const override { return TokenType::DOUBLE; }
     std::string toString() const override { return std::to_string(value_); }
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Double, value_);
+    friend void to_json(nlohmann::json& j, const Double& double_) {
+        j = std::to_string(double_.value_);
+    }
 
    private:
     double value_;

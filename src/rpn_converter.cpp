@@ -105,7 +105,15 @@ std::string RPNtoString(const TokenVec& tokens) {
     }
 
     if (stack.size() != 1) {
-        throw std::runtime_error("Invalid RPN expression: too many operands");
+        std::string expression;
+        for (size_t i = 0; i < tokens.size(); ++i) {
+            expression += tokens[i]->toString();
+            if (i != tokens.size() - 1) expression += " ";
+        }
+        throw std::runtime_error(
+            "Invalid RPN expression: too many operands "
+            "for operation: " +
+            expression);
     }
 
     return stack.top();

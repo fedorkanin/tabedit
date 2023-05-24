@@ -44,5 +44,5 @@ ADT Operation::execute(const std::vector<ADT>& args) const {
     if (arity_ == 1)
         return executeUnary(args[0]);
     else
-        return executeBinary(args[0], args[1]);
+        return executeBinary(args[1], args[0]);
 }

@@ -20,7 +20,7 @@ class String : public FormulaToken {
     std::string toString() const override { return *value_ptr_; }
 
     friend void to_json(nlohmann::json& j, const String& p) {
-        j = nlohmann::json(*p.value_ptr_);
+        j = nlohmann::json("\"" + *p.value_ptr_ + "\"");
     }
 
    private:

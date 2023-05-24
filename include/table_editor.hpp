@@ -24,7 +24,7 @@ class TableEditor {
     void        displayInPager(const std::string& filename);
     void        processLessCommand();
     void        processExitCommand();
-    void        processJsonCommand();
+    void        processJsonCommand(const std::string& command);
     void        processPrintCommand(const std::string& command);
     void        processDumpCommand(const std::string& command);
     void        processCellAssignmentCommand(const std::string&     command,
@@ -32,4 +32,5 @@ class TableEditor {
     void        processHelpCommand();
     std::string trim(const std::string& str);
     void        processEditCommand(const std::string& command);
+    void        processImportCommand(const std::string& command);
 };

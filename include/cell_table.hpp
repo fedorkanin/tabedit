@@ -36,14 +36,15 @@ class CellTable {
 
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
     friend void          to_json(nlohmann::json& j, const CellTable& table);
+    friend void          from_json(const nlohmann::json& j, CellTable& table);
 
     ADT  parsePrimitive(std::string raw_value) const;
     void evaluateCell(CellCoord coord, int depth = 0);
 
    private:
-    void recalcDependants(CellCoord coord, int depth = 0);
     std::vector<std::vector<std::shared_ptr<Cell>>> cells_;
 
+    void recalcDependants(CellCoord coord, int depth = 0);
     void insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell);
     void evaluateOperationToken(FormulaToken*    token_ptr,
                                 std::stack<ADT>& stack);

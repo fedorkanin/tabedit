@@ -26,8 +26,27 @@ void TableEditor::processLessCommand() {
 
 void TableEditor::processExitCommand() { exit(0); }
 
-void TableEditor::processJsonCommand() {
-    std::cout << nlohmann::json(table) << std::endl;
+void TableEditor::processJsonCommand(const std::string& command) {
+    std::string filename = "";  // Empty filename if no name is provided
+    if (command.size() > 5) {
+        filename = command.substr(5);
+    }
+
+    if (filename.empty()) {
+        std::cout << nlohmann::json(table).dump(4) << std::endl;
+        return;
+    }
+
+    std::ofstream outputFile(filename);
+    if (outputFile.is_open()) {
+        nlohmann::json json_data(table);
+        outputFile << json_data.dump(
+            4);  // Write JSON data with indentation of 4 spaces
+        outputFile.close();
+        std::cout << "JSON data written to file: " << filename << std::endl;
+    } else {
+        std::cout << "Failed to open file for writing." << std::endl;
+    }
 }
 
 void TableEditor::processPrintCommand(const std::string& command) {
@@ -114,6 +133,28 @@ void TableEditor::processEditCommand(const std::string& command) {
     }
 }
 
+void TableEditor::processImportCommand(const std::string& command) {
+    std::string filename =
+        command.substr(7);  // Extract the filename from the command
+
+    std::ifstream inputFile(filename);
+    if (inputFile.is_open()) {
+        try {
+            nlohmann::json json_data;
+            inputFile >> json_data;
+            table = json_data.get<decltype(table)>();
+            std::cout << "Table imported from JSON file: " << filename
+                      << std::endl;
+        } catch (const std::exception& e) {
+            std::cout << "Failed to parse JSON file: " << filename << e.what()
+                      << std::endl;
+        }
+        inputFile.close();
+    } else {
+        std::cout << "Failed to open JSON file: " << filename << std::endl;
+    }
+}
+
 TableEditor::TableEditor(size_t rows, size_t cols) : table(rows, cols) {
     std::signal(SIGINT, signalHandler);
 }
@@ -131,23 +172,26 @@ void TableEditor::run() {
             std::string            command   = trim(input);
             std::string::size_type equalsPos = command.find('=');
 
-            if (command == "less")
+            if (equalsPos != std::string::npos && equalsPos > 0)
+                processCellAssignmentCommand(command, equalsPos);
+            else if (command == "less")
                 processLessCommand();
             else if (command == "exit")
                 processExitCommand();
-            if (command.substr(0, 4) == "edit")
+            else if (command.substr(0, 4) == "edit")
                 processEditCommand(command);
-            else if (command == "json")
-                processJsonCommand();
+            else if (command.substr(0, 4) == "json")
+                processJsonCommand(command);
             else if (command.substr(0, 5) == "print")
                 processPrintCommand(command);
-            // dump
-            else if (command.substr(0, 4) == "dump") {
+            else if (command.substr(0, 4) == "dump")
                 processDumpCommand(command);
-            } else if (equalsPos != std::string::npos && equalsPos > 0)
-                processCellAssignmentCommand(command, equalsPos);
             else if (command == "help")
                 processHelpCommand();
+            else if (command.substr(0, 6) == "import")
+                processImportCommand(command);
+            else
+                std::cout << "Unknown command: " << command << std::endl;
         } catch (std::exception& e) {
             std::cout << "Error: " << e.what() << std::endl;
         }

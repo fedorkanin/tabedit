@@ -65,8 +65,8 @@ void Formula::handleSimpleOperator(std::string::iterator& it,
             auto prev_char_it = it;
             for (--prev_char_it; std::isspace(*prev_char_it); --prev_char_it)
                 ;
-
-            is_unary_minus = true;
+            if (isSimpleOperator(*prev_char_it) || *prev_char_it == '(')
+                is_unary_minus = true;
         }
 
         if (is_unary_minus) {

@@ -157,7 +157,7 @@ void CellTable::evaluateCellCoordToken(FormulaToken*    token_ptr,
     auto value_optional = referenced_cell->getOptionalValue();
 
     if (value_optional) {
-        stack.push(std::move(value_optional.value()));
+        stack.push(value_optional.value());
     } else {
         stack.push(NoType());
     }
@@ -225,7 +225,8 @@ void CellTable::evaluateCell(CellCoord coord, int depth) {
     }
 
     if (stack.size() != 1)
-        throw std::runtime_error("Invalid formula while evaluating: ");
+        throw std::runtime_error("Invalid formula while evaluating: " +
+                                 cell->getFormula().toString());
 
     cell->setValue(stack.top());
     // reeval dependants
@@ -273,15 +274,29 @@ std::ostream& operator<<(std::ostream& os, const CellTable& table) {
     return os;
 }
 
-void to_json(nlohmann::json& j, const CellTable& table) {
-    j = nlohmann::json::array();
+void to_json(nlohmann::json& table_json, const CellTable& table) {
+    table_json          = nlohmann::json();
+    table_json["rows"]  = table.getRows();
+    table_json["cols"]  = table.getCols();
+    table_json["cells"] = nlohmann::json::array();
     for (size_t row = 0; row < table.getRows(); ++row) {
         for (size_t col = 0; col < table.getCols(); ++col) {
             auto cell = table.at(row, col);
             if (!cell) continue;
 
-            nlohmann::json cell_json{{CellCoord(row, col), *cell}};
-            j.push_back(cell_json);
+            nlohmann::json cell_json = nlohmann::json::object();
+            cell_json[CellCoord(row, col).toString()] = *cell;
+            table_json["cells"].push_back(cell_json);
         }
+    }
+}
+
+void from_json(const nlohmann::json& j, CellTable& table) {
+    table = CellTable(j["rows"].get<size_t>(), j["cols"].get<size_t>());
+    for (auto& cell_json : j["cells"]) {
+        auto cell_obj     = cell_json;
+        auto cell_coord   = CellCoord(cell_obj.begin().key());
+        auto cell_content = cell_obj.begin().value().get<std::string>();
+        table.setCell(cell_coord, cell_content);
     }
 }

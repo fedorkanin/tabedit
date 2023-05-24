@@ -29,7 +29,8 @@ inline AbstractDataType DivisionVisitor::operator()(const T1& a,
         if (a.getValue() % b.getValue() == 0)
             return Integer(a.getValue() / b.getValue());
         else
-            return Double(a.getValue() / b.getValue());
+            return Double(static_cast<double>(a.getValue()) /
+                          static_cast<double>(b.getValue()));
     } else if constexpr (is_same_v<T1, NoType> || is_same_v<T2, NoType>)
         return NoType();
     else
