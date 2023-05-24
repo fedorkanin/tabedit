@@ -36,10 +36,17 @@ ADT CellTable::parsePrimitive(std::string raw_value) const {
     /// @todo: error handling in stod may not be preferable
     if (raw_value[0] == '"' && raw_value[raw_value.size() - 1] == '"')
         return String(raw_value.substr(1, raw_value.size() - 2));
-    else if (raw_value.find('.') != std::string::npos)
-        return Double(std::stod(raw_value));
-    else
-        return Integer(std::stoi(raw_value));
+    else if (raw_value.find('.') != std::string::npos) {
+        auto result = std::stod(raw_value);
+        if (std::to_string(result) != raw_value)
+            throw std::runtime_error("Cannot parse double: " + raw_value);
+        return Double(result);
+    } else {
+        auto result = std::stoll(raw_value);
+        if (std::to_string(result) != raw_value)
+            throw std::runtime_error("Cannot parse integer: " + raw_value);
+        return Integer(result);
+    }
 }
 
 std::set<CellCoord> CellTable::findOutdatedReferences(
@@ -93,7 +100,7 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
 
         cell_ptr->deleteFormula();
         return;
-    } catch (std::invalid_argument&) {
+    } catch (std::exception&) {
         // parse as formula
     }
 
@@ -120,12 +127,6 @@ void CellTable::growTo(size_t rows, size_t cols) {
     if (rows < getRows() || cols < getCols())
         throw std::runtime_error("Cannot shrink table");
     cells_.resize(rows, std::vector<std::shared_ptr<Cell>>(cols));
-}
-
-void CellTable::checkRecursionDepth(int depth) {
-    if (depth > 1000)
-        throw std::runtime_error(
-            "Recursion depth exceeded while evaluating cell");
 }
 
 void CellTable::evaluateOperationToken(FormulaToken*    token_ptr,
@@ -190,7 +191,12 @@ void CellTable::evaluateSimpleToken(FormulaToken*    token_ptr,
 }
 
 void CellTable::evaluateCell(CellCoord coord, int depth) {
-    checkRecursionDepth(depth);
+    if (depth > 1000) {
+        at(coord)->setValue(NoType());
+        throw std::runtime_error(
+            "Recursion depth exceeded while evaluating cell: " +
+            coord.toString());
+    }
 
     auto cell = at(coord);
     if (!cell->hasFormula()) throw std::runtime_error("Evaluating empty cell");
@@ -274,9 +280,7 @@ void to_json(nlohmann::json& j, const CellTable& table) {
             auto cell = table.at(row, col);
             if (!cell) continue;
 
-            nlohmann::json cell_json{
-                {CellCoord::getColName(col) + std::to_string(row), *cell}};
-            // cell_json = *cell;
+            nlohmann::json cell_json{{CellCoord(row, col), *cell}};
             j.push_back(cell_json);
         }
     }

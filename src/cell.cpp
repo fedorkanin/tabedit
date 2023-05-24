@@ -19,6 +19,27 @@ std::string Cell::dump() const {
     return result;
 }
 
+std::string Cell::dumpFull() const {
+    std::string result;
+    // value and formula if present
+    if (hasValue()) result += std::visit(ToStringVisitor(), value_.value());
+    if (hasFormula()) {
+        result += "=" + formula_ptr_->toString() + "\n";
+        for (const auto& token : formula_ptr_->getRPN()) {
+            result += token->toString() + " ";
+        }
+        result += "\n";
+    }
+    if (result.empty()) result = "Empty cell\n";
+    if (hasDependants()) {
+        result += " dependants: ";
+        for (const auto& dependant : dependants_)
+            result += dependant.toString() + " ";
+    }
+
+    return result;
+}
+
 std::string Cell::toString() const {
     if (hasValue()) {
         auto value = value_.value();

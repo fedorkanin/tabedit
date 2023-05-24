@@ -1,104 +1,6 @@
 #include "formula.hpp"
 using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
 
-TokenVec Formula::toRPN(TokenVec tokens) const {
-    TokenVec                                  output;
-    std::stack<std::unique_ptr<FormulaToken>> stack;
-
-    for (auto& token : tokens) {
-        if (token->getTokenType() == FormulaToken::TokenType::OPERATION) {
-            // Handle operations
-            while (
-                !stack.empty() &&
-                stack.top()->getTokenType() ==
-                    FormulaToken::TokenType::OPERATION &&
-                static_cast<OperationProxy*>(stack.top().get())
-                        ->getPriority() >=
-                    static_cast<OperationProxy*>(token.get())->getPriority()) {
-                output.push_back(std::move(stack.top()));
-                stack.pop();
-            }
-            stack.push(std::move(token));
-        } else if (token->getTokenType() ==
-                   FormulaToken::TokenType::PARENTHESIS) {
-            // Handle parenthesis
-            if (static_cast<Parenthesis*>(token.get())->getState() ==
-                Parenthesis::State::OPEN) {
-                stack.push(std::move(token));
-            } else {
-                while (!stack.empty() &&
-                       stack.top()->getTokenType() !=
-                           FormulaToken::TokenType::PARENTHESIS) {
-                    output.push_back(std::move(stack.top()));
-                    stack.pop();
-                }
-                if (stack.empty()) {
-                    throw std::runtime_error(
-                        "Mismatched parenthesis in formula: " + toString());
-                }
-                stack.pop();
-            }
-        } else {
-            // Handle operands
-            output.push_back(std::move(token));
-        }
-    }
-
-    while (!stack.empty()) {
-        if (stack.top()->getTokenType() ==
-            FormulaToken::TokenType::PARENTHESIS) {
-            throw std::runtime_error("Mismatched parenthesis in formula: " +
-                                     toString());
-        }
-        output.push_back(std::move(stack.top()));
-        stack.pop();
-    }
-
-    return output;
-}
-
-std::string Formula::RPNtoNormal(const TokenVec& tokens) const {
-    std::stack<std::string> stack;
-
-    for (auto& token : tokens) {
-        if (token->getTokenType() == FormulaToken::TokenType::OPERATION) {
-            int arity = static_cast<OperationProxy*>(token.get())->getArity();
-            if (stack.size() < static_cast<size_t>(arity)) {
-                throw std::runtime_error(
-                    "Invalid RPN expression: insufficient operands for "
-                    "operation");
-            }
-
-            std::vector<std::string> operands(arity);
-            for (int i = arity - 1; i >= 0; --i) {
-                operands[i] = std::move(stack.top());
-                stack.pop();
-            }
-
-            std::string expression;
-            if (arity == 1) {
-                // unary operator
-                expression = token->toString() + " " + operands[0];
-            } else if (arity == 2) {
-                // binary operator
-                expression = "(" + operands[0] + " " + token->toString() + " " +
-                             operands[1] + ")";
-            }
-
-            stack.push(std::move(expression));
-
-        } else {
-            stack.push(token->toString());
-        }
-    }
-
-    if (stack.size() != 1) {
-        throw std::runtime_error("Invalid RPN expression: too many operands");
-    }
-
-    return stack.top();
-}
-
 std::set<CellCoord> Formula::getReferencedCells() const {
     std::set<CellCoord> referenced_cells;
     for (auto& token : rpn_tokeinzed_) {
@@ -109,15 +11,16 @@ std::set<CellCoord> Formula::getReferencedCells() const {
     return referenced_cells;
 }
 
-std::string Formula::toString() const { return RPNtoNormal(rpn_tokeinzed_); }
+std::string Formula::toString() const { return RPNtoString(rpn_tokeinzed_); }
 
 TokenVec Formula::tokenize(std::string raw_formula) const {
     std::string::iterator it = raw_formula.begin();
-    TokenVec              tokenized_formula;
+    while (it != raw_formula.end() && std::isspace(*it)) ++it;
+    TokenVec tokenized_formula;
 
     while (it != raw_formula.end()) {
-        if (isOperator(*it)) {
-            handleOperator(it, tokenized_formula);
+        if (isSimpleOperator(*it)) {
+            handleSimpleOperator(it, tokenized_formula, raw_formula);
         } else if (std::isalpha(*it)) {
             handleAlpha(it, raw_formula.end(), tokenized_formula);
         } else if (*it == '\"') {
@@ -136,16 +39,47 @@ TokenVec Formula::tokenize(std::string raw_formula) const {
     return tokenized_formula;
 }
 
-bool Formula::isOperator(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+TokenVec Formula::toRPN(TokenVec tokens) const {
+    return RPNConverter::toRPN(*this, std::move(tokens));
+}
+
+std::string Formula::RPNtoString(const TokenVec& tokens) const {
+    return RPNConverter::RPNtoString(tokens);
+}
+
+bool Formula::isSimpleOperator(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
 bool Formula::isParenthesis(char c) { return c == '(' || c == ')'; }
 
-void Formula::handleOperator(std::string::iterator& it,
-                             TokenVec&              tokenized_formula) {
-    tokenized_formula.emplace_back(
-        std::make_unique<OperationProxy>(std::string(1, *it)));
+void Formula::handleSimpleOperator(std::string::iterator& it,
+                                   TokenVec&              tokenized_formula,
+                                   const std::string&     raw_formula) {
+    // '-' can be unary or binary operator
+    if (*it == '-') {
+        bool is_unary_minus = false;
+        if (it == raw_formula.begin()) {
+            is_unary_minus = true;
+        } else {
+            auto prev_char_it = it;
+            for (--prev_char_it; std::isspace(*prev_char_it); --prev_char_it)
+                ;
+
+            is_unary_minus = true;
+        }
+
+        if (is_unary_minus) {
+            tokenized_formula.emplace_back(std::make_unique<OperationProxy>(
+                OperationFactory::getUnaryOperationName("-")));
+        } else {
+            tokenized_formula.emplace_back(std::make_unique<OperationProxy>(
+                OperationFactory::getBinaryOperationName("-")));
+        }
+    } else {
+        tokenized_formula.emplace_back(std::make_unique<OperationProxy>(
+            OperationFactory::getBinaryOperationName(std::string(1, *it))));
+    }
     ++it;
 }
 
@@ -161,10 +95,11 @@ void Formula::handleAlpha(std::string::iterator&       it,
     if (raw_token.empty())
         throw std::runtime_error("Invalid token: " + raw_token);
 
-    if (raw_token == "sin" || raw_token == "cos" || raw_token == "tan" ||
-        raw_token == "log" || raw_token == "sqrt") {
+    if (raw_token == "sin" || raw_token == "cos" || raw_token == "abs") {
+        auto operation_name =
+            OperationFactory::getUnaryOperationName(raw_token);
         tokenized_formula.emplace_back(
-            std::make_unique<OperationProxy>(raw_token));
+            std::make_unique<OperationProxy>(operation_name));
         return;
     }
 

@@ -1,9 +1,6 @@
 #pragma once
 
-#include <math.h>
-
-#include <string>
-#include <variant>
+#include <cmath>
 
 #include "../../formula_token/data_types/abstract_data_type.hpp"
 

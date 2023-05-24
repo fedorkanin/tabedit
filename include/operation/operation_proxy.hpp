@@ -7,7 +7,7 @@
 
 class OperationProxy : public FormulaToken {
    public:
-    OperationProxy(std::string name)
+    OperationProxy(OperationFactory::OperationName name)
         : operation_(OperationFactory::getOperation(name)) {}
 
     TokenType    getTokenType() const override { return TokenType::OPERATION; }

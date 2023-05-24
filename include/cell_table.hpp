@@ -27,7 +27,6 @@ class CellTable {
     }
 
     void setCell(size_t row, size_t col, std::string value);
-
     void setCell(CellCoord coord, std::string value) {
         setCell(coord.getRow(), coord.getCol(), value);
     }
@@ -43,11 +42,9 @@ class CellTable {
 
    private:
     void recalcDependants(CellCoord coord, int depth = 0);
-    /// @todo move from pointers to values for speed
     std::vector<std::vector<std::shared_ptr<Cell>>> cells_;
 
     void insertCell(size_t row, size_t col, std::shared_ptr<Cell> cell);
-    void checkRecursionDepth(int depth);
     void evaluateOperationToken(FormulaToken*    token_ptr,
                                 std::stack<ADT>& stack);
     void evaluateCellCoordToken(FormulaToken* token_ptr, std::stack<ADT>& stack,

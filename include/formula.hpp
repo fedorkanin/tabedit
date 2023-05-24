@@ -10,6 +10,7 @@
 #include "../libs/json.hpp"
 #include "formula_token/formula_tokens.hpp"
 #include "operation/operation_proxy.hpp"
+#include "rpn_converter.hpp"
 
 class CellTable;
 
@@ -39,24 +40,23 @@ class Formula {
 
     TokenVec    tokenize(std::string raw_formula) const;
     TokenVec    toRPN(TokenVec tokens) const;
-    std::string RPNtoNormal(const TokenVec& tokens) const;
+    std::string RPNtoString(const TokenVec& tokens) const;
 
     /// @todo: synchronize operators with operation factory
-    static bool isOperator(char c);
+    static bool isSimpleOperator(char c);
     static bool isParenthesis(char c);
-    static void handleOperator(
-        std::string::iterator&                      it,
-        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
-    static void handleAlpha(
-        std::string::iterator& it, const std::string::iterator& end,
-        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
-    static void handleNumeric(
-        std::string::iterator& it, const std::string::iterator& end,
-        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
-    static void handleParenthesis(
-        std::string::iterator&                      it,
-        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
-    static void handleString(
-        std::string::iterator& it, const std::string::iterator& end,
-        std::vector<std::unique_ptr<FormulaToken>>& tokenized_formula);
+    static void handleSimpleOperator(std::string::iterator& it,
+                                     TokenVec&              tokenized_formula,
+                                     const std::string&     raw_formula);
+    static void handleAlpha(std::string::iterator&       it,
+                            const std::string::iterator& end,
+                            TokenVec&                    tokenized_formula);
+    static void handleNumeric(std::string::iterator&       it,
+                              const std::string::iterator& end,
+                              TokenVec&                    tokenized_formula);
+    static void handleParenthesis(std::string::iterator& it,
+                                  TokenVec&              tokenized_formula);
+    static void handleString(std::string::iterator&       it,
+                             const std::string::iterator& end,
+                             TokenVec&                    tokenized_formula);
 };

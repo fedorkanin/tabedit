@@ -20,7 +20,9 @@ std::pair<int, int> CellCoord::parseRawCoord(std::string raw_coord) {
         throw std::invalid_argument("Invalid cell coordinate");
 
     std::string col_str(raw_coord.begin(), first_digit_it);
+    if (col_str.empty()) throw std::invalid_argument("Invalid cell coordinate");
     std::string row_str(first_digit_it, raw_coord.end());
+    if (row_str.empty()) throw std::invalid_argument("Invalid cell coordinate");
 
     int col_num = 0;
     for (char c : col_str) col_num = col_num * ALPHABET_SIZE + (c - 'A');

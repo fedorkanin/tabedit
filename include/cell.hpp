@@ -35,6 +35,7 @@ class Cell {
     const Formula&      getFormula() const { return *formula_ptr_; }
     std::set<CellCoord> getReferencedCells() const;
     std::string         dump() const;
+    std::string         dumpFull() const;
 
     void deleteValue() { value_.reset(); }
     void deleteFormula() { formula_ptr_.reset(); }
