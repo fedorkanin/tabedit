@@ -13,12 +13,9 @@ CXXFLAGS = -Wall -pedantic -std=c++17 -g -I $(INC_DIR) $(addprefix -I $(INC_DIR)
 CCFLAGS = -I $(LIB_DIR)
 
 # include lib folder 
-SRC_FILES := $(wildcard $(SRC_DIR)/**/**/* $(SRC_DIR)/**/*.cpp $(SRC_DIR)/*.cpp)
-HDR_FILES := $(wildcard $(INC_DIR)/**/**/* $(INC_DIR)/**/*.hpp $(INC_DIR)/*.hpp)
-SRC_FILES_C := $(wildcard $(LIB_DIR)/*.c)
-HDR_FILES_C := $(wildcard $(LIB_DIR)/*.h)
-# HDR_FILES := $(wildcard $(INC_DIR)/**/*.hpp $(INC_DIR)/*.hpp)
+SRC_FILES := $(wildcard $(SRC_DIR)/**/*.cpp $(SRC_DIR)/*.cpp)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
+DEP_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.d,$(SRC_FILES))
 EXE_FILE = $(BIN_DIR)/main
 
 .PHONY: doc
@@ -39,14 +36,16 @@ $(OBJ_DIR)/linenoise.o: $(LIB_DIR)/linenoise.c $(LIB_DIR)/linenoise.h
 $(EXE_FILE): $(OBJ_FILES) $(OBJ_DIR)/linenoise.o
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HDR_FILES) $(HDR_FILES_C) $(SRC_FILES_C)
-# 	create directory if it doesn't exist
+# Create each .o file from its corresponding .cpp file
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D) 
-	$(CXX) $(CXXFLAGS) -I $(INC_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -MM -MT $@ -MF $(patsubst %.o,%.d,$@) $<
 
 clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -f $(EXE_FILE)
 	rm -rf $(DOC_DIR)/*
+
+# include the dependency files
+-include $(DEP_FILES)
