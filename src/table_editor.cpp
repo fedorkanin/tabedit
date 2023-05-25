@@ -14,11 +14,11 @@ void TableEditor::displayInPager(const std::string& filename) {
 }
 
 void TableEditor::processLessCommand() {
-    std::ofstream outputFile("table_tmp.txt");
+    std::ofstream outputFile("table.tmp");
     if (outputFile.is_open()) {
         outputFile << table;
         outputFile.close();
-        displayInPager("table_tmp.txt");
+        displayInPager("table.tmp");
     } else {
         std::cout << "Failed to open file for writing." << std::endl;
     }
@@ -88,7 +88,7 @@ void TableEditor::processCellAssignmentCommand(
     std::string coordString = command.substr(0, equalsPos);
     std::string value       = command.substr(equalsPos + 1);
 
-    CellCoord coord(coordString);
+    CellCoord   coord(coordString);
     try {
         table.setCell(coord, value);
     } catch (std::exception& e) {
@@ -112,7 +112,7 @@ void TableEditor::processEditCommand(const std::string& command) {
     try {
         std::shared_ptr<Cell> cell = table.at(coord);
 
-        std::string currentValue = cell ? cell->dump() : "empty";
+        std::string           currentValue = cell ? cell->dump() : "empty";
         std::cout << "Current value: " << cellAddress << ": " << currentValue
                   << std::endl;
 
