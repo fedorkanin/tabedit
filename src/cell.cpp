@@ -1,5 +1,13 @@
 #include "cell.hpp"
 
+void Cell::setFormula(std::unique_ptr<Formula> formula) {
+    formula_ptr_ = std::move(formula);
+}
+
+void Cell::setFormula(std::string raw_formula) {
+    setFormula(std::make_unique<Formula>(raw_formula));
+}
+
 std::set<CellCoord> Cell::getReferencedCells() const {
     return formula_ptr_ ? formula_ptr_->getReferencedCells()
                         : std::set<CellCoord>();
@@ -38,6 +46,14 @@ std::string Cell::dumpFull() const {
     }
 
     return result;
+}
+
+bool Cell::isDependentOn(const CellCoord& coord) const {
+    return formula_ptr_ ? formula_ptr_->isDependentOn(coord) : false;
+}
+
+void Cell::addDependant(CellCoord coord) {
+    dependants_.emplace(std::move(coord));
 }
 
 std::string Cell::toString() const {

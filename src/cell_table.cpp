@@ -1,5 +1,7 @@
 #include "cell_table.hpp"
 
+#define MAX_RECURSION_DEPTH 100
+
 CellTable::CellTable(
     std::initializer_list<std::initializer_list<std::string>> cells) {
     growTo(cells.size(), cells.begin()->size());
@@ -21,6 +23,10 @@ std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) {
     return cells_[row][col];
 }
 
+std::shared_ptr<Cell>& CellTable::at(CellCoord coord) {
+    return at(coord.getRow(), coord.getCol());
+}
+
 const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
     if (row >= getRows() || col >= getCols())
         throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
@@ -28,25 +34,8 @@ const std::shared_ptr<Cell>& CellTable::at(size_t row, size_t col) const {
     return cells_[row][col];
 }
 
-ADT CellTable::parsePrimitive(std::string raw_value) const {
-    // remove leading and trailing whitespace
-    raw_value.erase(0, raw_value.find_first_not_of(' '));
-    raw_value.erase(raw_value.find_last_not_of(' ') + 1);
-
-    /// @todo: error handling in stod may not be preferable
-    if (raw_value[0] == '"' && raw_value[raw_value.size() - 1] == '"')
-        return String(raw_value.substr(1, raw_value.size() - 2));
-    else if (raw_value.find('.') != std::string::npos) {
-        auto result = std::stod(raw_value);
-        if (std::to_string(result) != raw_value)
-            throw std::runtime_error("Cannot parse double: " + raw_value);
-        return Double(result);
-    } else {
-        auto result = std::stoll(raw_value);
-        if (std::to_string(result) != raw_value)
-            throw std::runtime_error("Cannot parse integer: " + raw_value);
-        return Integer(result);
-    }
+const std::shared_ptr<Cell>& CellTable::at(CellCoord coord) const {
+    return at(coord.getRow(), coord.getCol());
 }
 
 std::set<CellCoord> CellTable::findOutdatedReferences(
@@ -90,7 +79,7 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
 
     try {
         // try parse as primitive
-        cell_ptr->setValue(parsePrimitive(value));
+        cell_ptr->setValue(ADT::parsePrimitive(value));
         recalcDependants(CellCoord(row, col));
 
         // value changed to primitive, fix old references
@@ -123,10 +112,19 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
     evaluateCell(CellCoord(row, col));
 }
 
+void CellTable::setCell(CellCoord coord, std::string value) {
+    setCell(coord.getRow(), coord.getCol(), value);
+}
+
 void CellTable::growTo(size_t rows, size_t cols) {
     if (rows < getRows() || cols < getCols())
         throw std::runtime_error("Cannot shrink table");
     cells_.resize(rows, std::vector<std::shared_ptr<Cell>>(cols));
+}
+
+void CellTable::clear() {
+    for (auto& row : cells_)
+        for (auto& cell : row) cell = nullptr;
 }
 
 void CellTable::evaluateOperationToken(FormulaToken*    token_ptr,
@@ -191,7 +189,7 @@ void CellTable::evaluateSimpleToken(FormulaToken*    token_ptr,
 }
 
 void CellTable::evaluateCell(CellCoord coord, int depth) {
-    if (depth > 1000) {
+    if (depth > MAX_RECURSION_DEPTH) {
         at(coord)->setValue(NoType());
         throw std::runtime_error(
             "Recursion depth exceeded while evaluating cell: " +
@@ -282,7 +280,7 @@ void to_json(nlohmann::json& table_json, const CellTable& table) {
     for (size_t row = 0; row < table.getRows(); ++row) {
         for (size_t col = 0; col < table.getCols(); ++col) {
             auto cell = table.at(row, col);
-            if (!cell) continue;
+            if (!cell || !cell->hasValue()) continue;
 
             nlohmann::json cell_json = nlohmann::json::object();
             cell_json[CellCoord(row, col).toString()] = *cell;

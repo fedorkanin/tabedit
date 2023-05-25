@@ -11,9 +11,13 @@ std::set<CellCoord> Formula::getReferencedCells() const {
     return referenced_cells;
 }
 
+bool Formula::isDependentOn(const CellCoord& coord) const {
+    return dependent_on_.find(coord) != dependent_on_.end();
+}
+
 std::string Formula::toString() const { return RPNtoString(rpn_tokeinzed_); }
 
-TokenVec Formula::tokenize(std::string raw_formula) const {
+TokenVec    Formula::tokenize(std::string raw_formula) const {
     std::string::iterator it = raw_formula.begin();
     while (it != raw_formula.end() && std::isspace(*it)) ++it;
     TokenVec tokenized_formula;
@@ -48,7 +52,12 @@ std::string Formula::RPNtoString(const TokenVec& tokens) const {
 }
 
 bool Formula::isSimpleOperator(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/';
+    try {
+        OperationFactory::getOperationName(std::string(1, c));
+    } catch (std::exception& e) {
+        return false;
+    }
+    return true;
 }
 
 bool Formula::isParenthesis(char c) { return c == '(' || c == ')'; }
@@ -63,9 +72,12 @@ void Formula::handleSimpleOperator(std::string::iterator& it,
             is_unary_minus = true;
         } else {
             auto prev_char_it = it;
-            for (--prev_char_it; std::isspace(*prev_char_it); --prev_char_it)
+            for (--prev_char_it; std::isspace(*prev_char_it) &&
+                                 prev_char_it != raw_formula.begin();
+                 --prev_char_it)
                 ;
-            if (isSimpleOperator(*prev_char_it) || *prev_char_it == '(')
+            if (isSimpleOperator(*prev_char_it) || *prev_char_it == '(' ||
+                prev_char_it == raw_formula.begin())
                 is_unary_minus = true;
         }
 
@@ -164,3 +176,5 @@ std::string Formula::dumpFull(CellTable* table) const {
 
     return output;
 }
+
+void to_json(nlohmann::json& j, const Formula& f) { j = f.toString(); }

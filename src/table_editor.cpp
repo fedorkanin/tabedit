@@ -14,11 +14,11 @@ void TableEditor::displayInPager(const std::string& filename) {
 }
 
 void TableEditor::processLessCommand() {
-    std::ofstream outputFile("table.txt");
+    std::ofstream outputFile("table_tmp.txt");
     if (outputFile.is_open()) {
         outputFile << table;
         outputFile.close();
-        displayInPager("table.txt");
+        displayInPager("table_tmp.txt");
     } else {
         std::cout << "Failed to open file for writing." << std::endl;
     }
@@ -146,8 +146,8 @@ void TableEditor::processImportCommand(const std::string& command) {
             std::cout << "Table imported from JSON file: " << filename
                       << std::endl;
         } catch (const std::exception& e) {
-            std::cout << "Failed to parse JSON file: " << filename << e.what()
-                      << std::endl;
+            std::cout << "Error while parsing JSON or evaluating cells in "
+                      << filename << ": " << e.what() << std::endl;
         }
         inputFile.close();
     } else {
@@ -159,6 +159,9 @@ TableEditor::TableEditor(size_t rows, size_t cols) : table(rows, cols) {
     std::signal(SIGINT, signalHandler);
 }
 
+void TableEditor::processClearCommand() { table.clear(); }
+
+/// @todo: If circular references, json import is going to fail.
 void TableEditor::run() {
     while (true) {
         char* input = linenoise("Enter command: ");
@@ -190,6 +193,8 @@ void TableEditor::run() {
                 processHelpCommand();
             else if (command.substr(0, 6) == "import")
                 processImportCommand(command);
+            else if (command == "clear")
+                processClearCommand();
             else
                 std::cout << "Unknown command: " << command << std::endl;
         } catch (std::exception& e) {

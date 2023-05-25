@@ -30,6 +30,7 @@ class TableEditor {
     void        processCellAssignmentCommand(const std::string&     command,
                                              std::string::size_type equalsPos);
     void        processHelpCommand();
+    void        processClearCommand();
     std::string trim(const std::string& str);
     void        processEditCommand(const std::string& command);
     void        processImportCommand(const std::string& command);
