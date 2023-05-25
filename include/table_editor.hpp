@@ -18,11 +18,14 @@ class TableEditor {
     void run();
 
    private:
-    CellTable table;
+    CellTable   table;
 
     static void signalHandler(int signal);
+
+    /// @brief display a file in a less pager using system() call
     void        displayInPager(const std::string& filename);
     void        processLessCommand();
+    void        processShrinkCommand();
     void        processExitCommand();
     void        processJsonCommand(const std::string& command);
     void        processPrintCommand(const std::string& command);

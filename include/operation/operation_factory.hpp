@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "abstract_data_type.hpp"
 #include "operation.hpp"
 #include "visitors/visitors.hpp"
 

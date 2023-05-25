@@ -24,10 +24,18 @@ std::pair<int, int> CellCoord::parseRawCoord(std::string raw_coord) {
     std::string row_str(first_digit_it, raw_coord.end());
     if (row_str.empty()) throw std::invalid_argument("Invalid cell coordinate");
 
-    int col_num = 0;
-    for (char c : col_str) col_num = col_num * ALPHABET_SIZE + (c - 'A');
+    if (std::to_string(std::stoi(row_str)) != row_str)
+        throw std::invalid_argument("Invalid cell coordinate");
 
-    return {col_num, std::stoi(row_str) - 1};
+    int col_num = 0;
+    for (char c : col_str) {
+        if (!std::isalpha(c))
+            throw std::invalid_argument("Invalid cell coordinate");
+        col_num *= ALPHABET_SIZE;
+        col_num += std::toupper(c) - 'A' + 1;
+    }
+
+    return {col_num - 1, std::stoi(row_str) - 1};
 }
 
 bool CellCoord::isValidCoord(std::string raw_coord) {

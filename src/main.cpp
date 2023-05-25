@@ -1,7 +1,7 @@
 #include "table_editor.hpp"
 
 int main() {
-    TableEditor editor(10, 10);
+    TableEditor editor(1, 1);
     editor.run();
 
     return 0;

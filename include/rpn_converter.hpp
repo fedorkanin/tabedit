@@ -6,23 +6,28 @@
 
 class Formula;
 
-namespace RPNConverter {
-using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
+/// @brief Pure static class that converts a formula to RPN and back
+class RPNConverter {
+    using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
 
-void handleOperation(std::unique_ptr<FormulaToken>&             token,
-                     std::stack<std::unique_ptr<FormulaToken>>& stack,
-                     TokenVec&                                  output);
+   public:
+    static TokenVec    toRPN(const Formula& formula, TokenVec tokens);
+    static std::string RPNtoString(const TokenVec& tokens);
 
-void handleParenthesis(std::unique_ptr<FormulaToken>&             token,
-                       std::stack<std::unique_ptr<FormulaToken>>& stack,
-                       TokenVec& output, const Formula& formula);
+   private:
+    static void handleOperation(
+        std::unique_ptr<FormulaToken>&             token,
+        std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output);
 
-void handleOperand(std::unique_ptr<FormulaToken>& token, TokenVec& output);
+    static void handleParenthesis(
+        std::unique_ptr<FormulaToken>&             token,
+        std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output,
+        const Formula& formula);
 
-void processRemainingStack(std::stack<std::unique_ptr<FormulaToken>>& stack,
-                           TokenVec& output, const Formula& formula);
+    static void handleOperand(std::unique_ptr<FormulaToken>& token,
+                              TokenVec&                      output);
 
-TokenVec toRPN(const Formula& formula, TokenVec tokens);
-
-std::string RPNtoString(const TokenVec& tokens);
-}  // namespace RPNConverter
+    static void processRemainingStack(
+        std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output,
+        const Formula& formula);
+};

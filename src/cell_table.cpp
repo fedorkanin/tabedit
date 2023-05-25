@@ -58,11 +58,11 @@ void CellTable::removeCoordFromDependants(CellCoord coord_to_remove,
 }
 
 void CellTable::setCell(size_t row, size_t col, std::string value) {
-    if (row >= getRows() || col >= getCols())
-        throw std::runtime_error("Index out of bounds: " + std::to_string(row) +
-                                 " " + std::to_string(col));
+    if (row >= getRows() || col >= getCols()) {
+        growTo(row + 1, col + 1);
+    }
+
     if (value.empty()) {
-        // cells_[row][col] = nullptr;
         if (cells_[row][col] == nullptr || !cells_[row][col]->hasDependants()) {
             cells_[row][col] = nullptr;
             return;
@@ -79,7 +79,7 @@ void CellTable::setCell(size_t row, size_t col, std::string value) {
 
     try {
         // try parse as primitive
-        cell_ptr->setValue(ADT::parsePrimitive(value));
+        cell_ptr->setValue(Formula::parsePrimitive(value));
         recalcDependants(CellCoord(row, col));
 
         // value changed to primitive, fix old references
@@ -118,13 +118,25 @@ void CellTable::setCell(CellCoord coord, std::string value) {
 
 void CellTable::growTo(size_t rows, size_t cols) {
     if (rows < getRows() || cols < getCols())
-        throw std::runtime_error("Cannot shrink table");
-    cells_.resize(rows, std::vector<std::shared_ptr<Cell>>(cols));
+        throw std::runtime_error("Cannot shrinkToFit table");
+    cells_.resize(rows);
+    for (auto& row : cells_) row.resize(cols);
 }
 
-void CellTable::clear() {
-    for (auto& row : cells_)
-        for (auto& cell : row) cell = nullptr;
+void CellTable::clear() { cells_.clear(); }
+
+// reduce the size of the table to the minimum required to fit all the cells
+void CellTable::shrinkToFit() {
+    size_t min_rows = 0, min_cols = 0;
+    for (size_t row = 0; row < getRows(); ++row) {
+        for (size_t col = 0; col < getCols(); ++col) {
+            if (cells_[row][col] == nullptr) continue;
+            min_rows = std::max(min_rows, row + 1);
+            min_cols = std::max(min_cols, col + 1);
+        }
+    }
+    cells_.resize(min_rows ? min_rows : 1);
+    for (auto& row : cells_) row.resize(min_cols ? min_cols : 1);
 }
 
 void CellTable::evaluateOperationToken(FormulaToken*    token_ptr,
@@ -252,13 +264,16 @@ std::ostream& operator<<(std::ostream& os, const CellTable& table) {
 
     // create a row of column names like A...Z, AA...AZ, BA...BZ, etc.
     Row_t column_names;
-    column_names.reserve(table.getCols());
+    column_names.reserve(table.getCols() + 1);
+    column_names.emplace_back("");
     for (size_t col = 0; col < table.getCols(); ++col)
         column_names.emplace_back(CellCoord::getColName(col));
     out_table.add_row(column_names);
 
     for (size_t row = 0; row < table.getRows(); ++row) {
         Row_t out_row;
+        out_row.reserve(table.getCols() + 1);
+        out_row.push_back(std::to_string(row + 1));
         for (size_t col = 0; col < table.getCols(); ++col) {
             auto cell = table.at(row, col);
             out_row.push_back(cell ? cell->toString() : "");
@@ -267,6 +282,10 @@ std::ostream& operator<<(std::ostream& os, const CellTable& table) {
     }
     out_table.format().width(10);
     out_table.format().height(1);
+    out_table.column(0).format().font_align(FontAlign::center);
+    out_table.column(0).format().width(5);
+    out_table.row(0).format().font_align(FontAlign::center);
+    out_table.row(0).format().padding_left(0);
     // out_table[1][1].format().width(20);
     os << out_table << std::endl;
     return os;

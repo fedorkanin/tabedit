@@ -31,6 +31,9 @@ class Cell {
     void                addDependant(CellCoord coord);
     bool                isDependentOn(const CellCoord& coord) const;
     const Formula&      getFormula() const { return *formula_ptr_; }
+
+    /// @brief Get the cells referenced by the formula, returns empty set if no
+    /// formula
     std::set<CellCoord> getReferencedCells() const;
     const std::optional<ADT>&  getOptionalValue() const { return value_; }
     const std::set<CellCoord>& getDependants() const { return dependants_; }

@@ -9,7 +9,7 @@ void TableEditor::signalHandler(int signal) {
 
 void TableEditor::displayInPager(const std::string& filename) {
     std::stringstream command;
-    command << "less " << filename;
+    command << "less -S " << filename;
     system(command.str().c_str());
 }
 
@@ -23,6 +23,8 @@ void TableEditor::processLessCommand() {
         std::cout << "Failed to open file for writing." << std::endl;
     }
 }
+
+void TableEditor::processShrinkCommand() { table.shrinkToFit(); }
 
 void TableEditor::processExitCommand() { exit(0); }
 
@@ -96,7 +98,7 @@ void TableEditor::processCellAssignmentCommand(
     }
 }
 
-void TableEditor::processHelpCommand() { displayInPager("./static/help.txt"); }
+void TableEditor::processHelpCommand() { displayInPager("./assets/help.txt"); }
 
 std::string TableEditor::trim(const std::string& str) {
     std::string whitespace = " \t\n\r\f\v";
@@ -195,6 +197,8 @@ void TableEditor::run() {
                 processImportCommand(command);
             else if (command == "clear")
                 processClearCommand();
+            else if (command == "shrink")
+                processShrinkCommand();
             else
                 std::cout << "Unknown command: " << command << std::endl;
         } catch (std::exception& e) {

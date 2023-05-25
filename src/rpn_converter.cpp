@@ -1,9 +1,10 @@
 #include "rpn_converter.hpp"
 
-namespace RPNConverter {
-void handleOperation(std::unique_ptr<FormulaToken>&             token,
-                     std::stack<std::unique_ptr<FormulaToken>>& stack,
-                     TokenVec&                                  output) {
+using TokenVec = std::vector<std::unique_ptr<FormulaToken>>;
+
+void RPNConverter::handleOperation(
+    std::unique_ptr<FormulaToken>&             token,
+    std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output) {
     while (!stack.empty() &&
            stack.top()->getTokenType() == FormulaToken::TokenType::OPERATION &&
            static_cast<OperationProxy*>(stack.top().get())->getPriority() >=
@@ -14,9 +15,10 @@ void handleOperation(std::unique_ptr<FormulaToken>&             token,
     stack.push(std::move(token));
 }
 
-void handleParenthesis(std::unique_ptr<FormulaToken>&             token,
-                       std::stack<std::unique_ptr<FormulaToken>>& stack,
-                       TokenVec& output, const Formula& formula) {
+void RPNConverter::handleParenthesis(
+    std::unique_ptr<FormulaToken>&             token,
+    std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output,
+    const Formula& formula) {
     if (static_cast<Parenthesis*>(token.get())->getState() ==
         Parenthesis::State::OPEN) {
         stack.push(std::move(token));
@@ -34,12 +36,14 @@ void handleParenthesis(std::unique_ptr<FormulaToken>&             token,
     }
 }
 
-void handleOperand(std::unique_ptr<FormulaToken>& token, TokenVec& output) {
+void RPNConverter::handleOperand(std::unique_ptr<FormulaToken>& token,
+                                 TokenVec&                      output) {
     output.push_back(std::move(token));
 }
 
-void processRemainingStack(std::stack<std::unique_ptr<FormulaToken>>& stack,
-                           TokenVec& output, const Formula& formula) {
+void RPNConverter::processRemainingStack(
+    std::stack<std::unique_ptr<FormulaToken>>& stack, TokenVec& output,
+    const Formula& formula) {
     while (!stack.empty()) {
         if (stack.top()->getTokenType() ==
             FormulaToken::TokenType::PARENTHESIS) {
@@ -51,7 +55,7 @@ void processRemainingStack(std::stack<std::unique_ptr<FormulaToken>>& stack,
     }
 }
 
-TokenVec toRPN(const Formula& formula, TokenVec tokens) {
+TokenVec RPNConverter::toRPN(const Formula& formula, TokenVec tokens) {
     TokenVec                                  output;
     std::stack<std::unique_ptr<FormulaToken>> stack;
 
@@ -71,7 +75,7 @@ TokenVec toRPN(const Formula& formula, TokenVec tokens) {
     return output;
 }
 
-std::string RPNtoString(const TokenVec& tokens) {
+std::string RPNConverter::RPNtoString(const TokenVec& tokens) {
     std::stack<std::string> stack;
 
     for (auto& token : tokens) {
@@ -118,4 +122,3 @@ std::string RPNtoString(const TokenVec& tokens) {
 
     return stack.top();
 }
-}  // namespace RPNConverter

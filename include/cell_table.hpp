@@ -20,18 +20,19 @@ class CellTable {
     /// @param cells 2d list of strings representing values or formulas.
     CellTable(std::initializer_list<std::initializer_list<std::string>> cells);
 
+    /// @brief Get a cell at given coordinates with bounds checking.
     std::shared_ptr<Cell>&       at(size_t row, size_t col);
     std::shared_ptr<Cell>&       at(CellCoord coord);
     const std::shared_ptr<Cell>& at(size_t row, size_t col) const;
     const std::shared_ptr<Cell>& at(CellCoord coord) const;
 
-    /// @brief If primitive-parseable, value is treated as a primitive,
-    /// otherwise as a formula.
+    /// @brief Set the cell at given coordinates to a value or a formula,
+    /// with bounds checking. If out of bounds, grows the table.
     /// @param row Row index.
     /// @param col Column index.
     /// @param value String representing a value or a formula.
-    /// @details Evaluates a formula if formula is set, re-evaluates
-    /// dependant cells, manages referenced cells "dependants" set.
+    /// @details Evaluates a formula if a formula has been set, re-evaluates
+    /// dependant cells, manages referenced cells "dependants" member.
     void   setCell(size_t row, size_t col, std::string value);
     void   setCell(CellCoord coord, std::string value);
 
@@ -45,13 +46,17 @@ class CellTable {
     /// an exception.
     void   growTo(size_t rows, size_t cols);
 
-    /// @brief Set all the cell pointers to nullptr, clearing the table.
+    /// @brief Delete all cells.
     void   clear();
+    /// @brief Shrink to the minimum size needed to fit all non-empty cells.
+    void   shrinkToFit();
 
     friend std::ostream& operator<<(std::ostream& os, const CellTable& table);
     friend void          to_json(nlohmann::json& j, const CellTable& table);
     friend void          from_json(const nlohmann::json& j, CellTable& table);
 
+    /// @brief Evaluate cell with a formula, reevaluate dependant cells with
+    /// recursion depth checking. If no formula, throws an exception.
     void                 evaluateCell(CellCoord coord, int depth = 0);
 
    private:
