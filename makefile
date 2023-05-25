@@ -13,7 +13,7 @@ CXXFLAGS = -Wall -pedantic -std=c++17 -g -I $(INC_DIR) $(addprefix -I $(INC_DIR)
 CCFLAGS = -I $(LIB_DIR)
 
 # include lib folder 
-SRC_FILES := $(wildcard $(SRC_DIR)/**/*.cpp $(SRC_DIR)/*.cpp)
+SRC_FILES := $(wildcard $(SRC_DIR)/*/*/*.cpp $(SRC_DIR)/*/*.cpp $(SRC_DIR)/*.cpp)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRC_FILES))
 DEP_FILES = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.d,$(SRC_FILES))
 EXE_FILE = $(BIN_DIR)/main
