@@ -10,6 +10,9 @@
 using AbstractDataType = std::variant<Integer, Double, String, NoType>;
 using ADT              = AbstractDataType;
 
+/// @bug I would like to encapsulate ADT in a class and make parsePrimitive (now
+/// in formula.hpp) a member function, but ProgTest won't let me.
+
 // class AbstractDataType : public std::variant<Integer, Double, String, NoType>
 // {
 //     using variant::variant;

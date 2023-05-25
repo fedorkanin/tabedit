@@ -59,7 +59,7 @@ void CellTable::removeCoordFromDependants(CellCoord coord_to_remove,
 
 void CellTable::setCell(size_t row, size_t col, std::string value) {
     if (row >= getRows() || col >= getCols()) {
-        growTo(row + 1, col + 1);
+        growTo(std::max(row + 1, getRows()), std::max(col + 1, getCols()));
     }
 
     if (value.empty()) {
@@ -118,7 +118,9 @@ void CellTable::setCell(CellCoord coord, std::string value) {
 
 void CellTable::growTo(size_t rows, size_t cols) {
     if (rows < getRows() || cols < getCols())
-        throw std::runtime_error("Cannot shrinkToFit table");
+        throw std::runtime_error(
+            "Cannot grow to smaller size: " + std::to_string(rows) + " " +
+            std::to_string(cols));
     cells_.resize(rows);
     for (auto& row : cells_) row.resize(cols);
 }

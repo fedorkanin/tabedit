@@ -34,9 +34,9 @@ inline AbstractDataType AdditionVisitor::operator()(const T1& a,
     else if constexpr (is_same_v<T1, String> && is_same_v<T2, String>)
         return String(a.getValue() + b.getValue());
     else if constexpr (is_same_v<T1, String>)
-        return String(a.getValue() + std::to_string(b.getValue()));
+        return String(a.getValue() + b.toString());
     else if constexpr (is_same_v<T2, String>)
-        return String(std::to_string(a.getValue()) + b.getValue());
+        return String(a.toString() + b.getValue());
 
     else
         throw std::invalid_argument(

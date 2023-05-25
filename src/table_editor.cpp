@@ -57,7 +57,7 @@ void TableEditor::processPrintCommand(const std::string& command) {
     try {
         std::shared_ptr<Cell> cell = table.at(coord);
         if (cell) {
-            std::cout << "Dump of cell " << cellAddress << ":" << std::endl;
+            std::cout << "Cell " << cellAddress << ":" << std::endl;
             std::cout << cell->dump() << std::endl;
         } else {
             std::cout << "Cell " << cellAddress << " does not exist."
@@ -144,7 +144,7 @@ void TableEditor::processImportCommand(const std::string& command) {
         try {
             nlohmann::json json_data;
             inputFile >> json_data;
-            table = json_data.get<decltype(table)>();
+            table = json_data.get<CellTable>();
             std::cout << "Table imported from JSON file: " << filename
                       << std::endl;
         } catch (const std::exception& e) {

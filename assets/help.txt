@@ -1,0 +1,43 @@
+=================================HELP=====================================
+TabEdit - a CLI table editor with sometimes correctly calculated formulas
+
+    
+    <cell_coordinate> = <value|formula>
+        set the cell at the given coordinate to the given value or formula
+        example: A1 = 5
+        example: A1 = B1 + 5
+        example: A1 = B1 + C1 * 5
+
+    less 
+        display table contents in the less pager
+
+    edit <cell_coordinate>
+        edit the cell at the given coordinate
+        example: edit A1
+
+    print <cell_coordinate>
+        print the contents of the cell at the given coordinate
+        example: print A1
+
+    dump <cell_coordinate>
+        same as print, but also prints the cell's dependencies and postfix 
+        formula
+        example: dump A1
+    
+    shrink
+        shrink the table to the minimum size necessary to contain all the 
+        non-empty cells
+
+    json <filename>
+        export the table to a json file in the project directory
+        example: json my_table.json
+        if no filename, defaults to std::cout 
+    
+    import <filename>
+        import a json file into the table
+        example: import my_table.json
+    
+    exit
+        exit the program
+
+   
