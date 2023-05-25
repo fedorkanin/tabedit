@@ -46,6 +46,7 @@ clean:
 	rm -rf $(OBJ_DIR)/*
 	rm -f $(EXE_FILE)
 	rm -rf $(DOC_DIR)/*
+	rm -f table_tmp.txt tabedit.zip json.txt *.tmp
 
 # include the dependency files
 -include $(DEP_FILES)
