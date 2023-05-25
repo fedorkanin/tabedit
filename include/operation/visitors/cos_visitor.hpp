@@ -9,6 +9,11 @@ struct CosVisitor {
     AbstractDataType operator()(const T& t) const;
 };
 
+/// @brief Visitor for cos operation
+/// @tparam T Operand type
+/// @param t Operand
+/// @ingroup visitors
+/// @return Result of the cos, type depends on the operand
 template <typename T>
 inline AbstractDataType CosVisitor::operator()(const T& t) const {
     using namespace std;

@@ -11,7 +11,7 @@ struct ToStringVisitor {
     std::string operator()(const T& variant_instance) const;
 };
 
-/// @brief Visitor for toString operation
+/// @brief Visitor for toString operation, utilized by the toString method of the operand
 /// @tparam T Operand type
 /// @param variant_instance Operand
 /// @return String result of the toString method of the operand
@@ -20,6 +20,5 @@ template <typename T>
 inline std::string ToStringVisitor::operator()(
     const T& variant_instance) const {
     using namespace std;
-    ///@todo: toString purely in visitor
     return variant_instance.toString();
 }

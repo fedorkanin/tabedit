@@ -12,8 +12,8 @@ struct SinVisitor {
 /// @brief Visitor for sin operation
 /// @tparam T Operand type
 /// @param a Operand
-/// @return Double result of the sin
 /// @ingroup visitors
+/// @return Double result of the sin
 template <typename T>
 inline AbstractDataType SinVisitor::operator()(const T& a) const {
     using namespace std;

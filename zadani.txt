@@ -1,21 +1,51 @@
 Table editor specification.
 
-=========================== ABSTRACT ===========================
+=========================== ABSTRACT =====================================
 This is a CLI table editor. Table cells may contain combinations of strings, 
 numberic data, cell coordinates, parentheses, and operators. Formulas are 
 evaluated dynamically as the table is edited.
 
-===========================POLYMORPHISM===========================
+======================== CELL VALUE TYPES ================================
+Cell value is dynamically typed. Underlying types are String, Integer and 
+Double classes. Dynamic typization is achieved via std::variant (see 
+polymorphism section).
+
+=========================== FORMULAS =====================================
+Formulas are evaluated dynamically. Formula is a vector of FormulaTokens.
+Formulas support basic arithmetic operations (+, -, *, /) and parentheses.
+The functions availaible are sin, cos and abs. Formulas can contain cell
+references (coordinates). See the help file for more information on 
+the practical use of formulas.
+
+======================== EXPORT AND IMPORT ===============================
+The table editor supports JSON import and export via "json" and "import"
+commands. The usage of the commands is described in the help file.
+
+=========================== COMMANDS =====================================
+See the help file for the list of commands or type "help" in the editor
+CLI interface.
+
+=========================== BUILDING =====================================
+The project is built with Make, dependencies are:
+    - C++17
+    - graphviz (for generating class diagram)
+Build through makefile:
+    - make all - builds the project
+    - make run - runs the project
+    - make clean - cleans the project
+    - make doc - generates documentation
+
+===========================POLYMORPHISM===================================
 Different polymorphic approaches are widely used in the code. 
-- Cell
+    - Cell
 FormulaCell and ValueCell are derived from Cell. The names are self-explanatory.
 Both Cells can be evaluated, this is the main reason for the inheritance.
-- Formula and FormulaToken
+    - Formula and FormulaToken
 FormulaCell holds Formula, which is a vector of FormulaTokens. FormulaToken 
 can be a number, a cell reference, an operator, or a parenthesis. In order to
 avoid RTTI, every FormulaToken has a type, which can be accessed via 
 getTokenType method.
-- Basic data types and operations on them
+    - Basic data types and operations on them
 There are three types that actually directly hold data: string, double, and 
 integer. Mechanism of conducting operations polymorphically on these types is 
 the most integeresting part of the code. Patterns I considered
@@ -25,6 +55,8 @@ the most integeresting part of the code. Patterns I considered
     - Visitor via std::variant and std::visit
 After considering pros and cons of each approach, I decided to use the last one.
 This design provides both type safety, speed and extensibility of operations.
+For more information on the implementation of this approach, see why_visitor.txt
+in static folder.
 - Operation class
 In order to execute operations conviniently, an Operation class derived from
 FormulaToken was introduced. It holds an unary or binary std::function, which

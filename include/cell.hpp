@@ -21,22 +21,22 @@ class Cell {
         : formula_ptr_(std::make_unique<Formula>(raw_formula)) {}
     Cell() = default;
 
-    bool                hasValue() const { return value_.has_value(); }
-    bool                hasFormula() const { return formula_ptr_ != nullptr; }
-    bool                hasDependants() const { return !dependants_.empty(); }
+    bool           hasValue() const { return value_.has_value(); }
+    bool           hasFormula() const { return formula_ptr_ != nullptr; }
+    bool           hasDependants() const { return !dependants_.empty(); }
 
-    void                setValue(ADT value) { value_ = std::move(value); }
-    void                setFormula(std::unique_ptr<Formula> formula);
-    void                setFormula(std::string raw_formula);
-    void                addDependant(CellCoord coord);
-    bool                isDependentOn(const CellCoord& coord) const;
-    const Formula&      getFormula() const { return *formula_ptr_; }
+    void           setValue(ADT value) { value_ = std::move(value); }
+    void           setFormula(std::unique_ptr<Formula> formula);
+    void           setFormula(std::string raw_formula);
+    void           addDependant(CellCoord coord);
+    bool           isDependentOn(const CellCoord& coord) const;
+    const Formula& getFormula() const { return *formula_ptr_; }
 
     /// @brief Get the cells referenced by the formula, returns empty set if no
     /// formula
-    std::set<CellCoord> getReferencedCells() const;
     const std::optional<ADT>&  getOptionalValue() const { return value_; }
     const std::set<CellCoord>& getDependants() const { return dependants_; }
+    std::set<CellCoord>        getReferencedCells() const;
     void                       deleteValue() { value_.reset(); }
     void                       deleteFormula() { formula_ptr_.reset(); }
     void        removeDependant(CellCoord coord) { dependants_.erase(coord); }
@@ -50,7 +50,13 @@ class Cell {
     friend void to_json(nlohmann::json& j, const Cell& c);
 
    private:
+    /// @brief Value is optional because a cell can have dependants but no value
+    /// or formula
     std::optional<ADT>       value_;
+    /// @brief Formula is stored as a pointer in order to save space when a cell
+    /// stores a primitive value
     std::unique_ptr<Formula> formula_ptr_;
+    /// @brief Cells that depend on this cell and must be reevaluated when this
+    /// cell changes
     std::set<CellCoord>      dependants_;
 };

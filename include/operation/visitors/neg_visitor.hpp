@@ -7,6 +7,11 @@ struct NegationVisitor {
     AbstractDataType operator()(const T& t) const;
 };
 
+/// @brief Visitor for negation operation (unary minus)
+/// @tparam T Operand type
+/// @param t Operand
+/// @ingroup visitors
+/// @return Result of the negation, type depends on the operand
 template <typename T>
 inline AbstractDataType NegationVisitor::operator()(const T& t) const {
     using namespace std;

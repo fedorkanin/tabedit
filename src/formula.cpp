@@ -129,16 +129,23 @@ void Formula::handleAlpha(std::string::iterator&       it,
 void Formula::handleNumeric(std::string::iterator&       it,
                             const std::string::iterator& end,
                             TokenVec&                    tokenized_formula) {
+    // use parsePrimitive
     std::string number;
     while (it != end && (std::isdigit(*it) || *it == '.')) {
         number.push_back(*it);
         ++it;
     }
 
-    if (number.find('.') != std::string::npos)
-        tokenized_formula.emplace_back(std::make_unique<Double>(number));
-    else
-        tokenized_formula.emplace_back(std::make_unique<Integer>(number));
+    auto parsed_number = parsePrimitive(number);
+    if (std::holds_alternative<Integer>(parsed_number)) {
+        tokenized_formula.emplace_back(
+            std::make_unique<Integer>(std::get<Integer>(parsed_number)));
+    } else if (std::holds_alternative<Double>(parsed_number)) {
+        tokenized_formula.emplace_back(
+            std::make_unique<Double>(std::get<Double>(parsed_number)));
+    } else {
+        throw std::runtime_error("Unknown type in handleNumeric");
+    }
 }
 
 void Formula::handleParenthesis(std::string::iterator& it,
@@ -187,13 +194,15 @@ ADT  Formula::parsePrimitive(std::string raw_value) {
     if (raw_value[0] == '"' && raw_value[raw_value.size() - 1] == '"')
         return String(raw_value.substr(1, raw_value.size() - 2));
     else if (raw_value.find('.') != std::string::npos) {
-        auto result = std::stod(raw_value);
-        if (std::to_string(result) != raw_value)
+        size_t pos;
+        auto   result = std::stod(raw_value, &pos);
+        if (pos != raw_value.size())
             throw std::runtime_error("Cannot parse double: " + raw_value);
         return Double(result);
     } else {
-        auto result = std::stoll(raw_value);
-        if (std::to_string(result) != raw_value)
+        size_t pos;
+        auto   result = std::stoll(raw_value, &pos);
+        if (pos != raw_value.size())
             throw std::runtime_error("Cannot parse integer: " + raw_value);
         return Integer(result);
     }

@@ -15,18 +15,10 @@ class Double : public FormulaToken {
     Double(std::string value) : value_(std::stod(value)) {}
 
     double      getValue() const { return value_; }
-
     TokenType   getTokenType() const override { return TokenType::DOUBLE; }
-    std::string toString() const override {
-        double rounded = std::round(value_ * pow(10, DOUBLE_PRECISION)) /
-                         pow(10, DOUBLE_PRECISION);
-        std::stringstream ss;
-        ss << std::fixed << std::setprecision(DOUBLE_PRECISION) << rounded;
-        return ss.str();
-    }
-    friend void to_json(nlohmann::json& j, const Double& double_) {
-        j = double_.toString();
-    }
+
+    std::string toString() const override;
+    friend void to_json(nlohmann::json& j, const Double& double_);
 
    private:
     double value_;

@@ -34,6 +34,8 @@ class Formula {
     friend void         to_json(nlohmann::json& j, const Formula& f);
     std::string         dumpFull(CellTable* table) const;
 
+    /// @brief Parse a raw string to String, Integer or Double. If unsuccessful,
+    /// throws exception
     static ADT          parsePrimitive(std::string raw_value);
 
    private:
@@ -46,19 +48,24 @@ class Formula {
 
     static bool         isSimpleOperator(char c);
     static bool         isParenthesis(char c);
-    /// @brief Create an operation and push it to the stack, minus is checked
-    /// for unarity
+    /// @brief Helper function for tokenize(). Create an operation and push it
+    /// to the stack, minus is checked for unarity
     static void         handleSimpleOperator(std::string::iterator& it,
                                              TokenVec&              tokenized_formula,
                                              const std::string&     raw_formula);
+    /// @brief Helper function for tokenize(). Parse a cell coordinate or a
+    /// function like sin(). Push the result to the tokenized_formula
     static void         handleAlpha(std::string::iterator&       it,
                                     const std::string::iterator& end,
                                     TokenVec&                    tokenized_formula);
+    /// @brief Helper function for tokenize(). Parses a number
     static void         handleNumeric(std::string::iterator&       it,
                                       const std::string::iterator& end,
                                       TokenVec&                    tokenized_formula);
+    /// @brief Helper function for tokenize().
     static void         handleParenthesis(std::string::iterator& it,
                                           TokenVec&              tokenized_formula);
+    /// @brief  Helper function for tokenize().
     static void         handleString(std::string::iterator&       it,
                                      const std::string::iterator& end,
                                      TokenVec&                    tokenized_formula);

@@ -14,6 +14,8 @@
 
 class OperationFactory;
 
+/// @brief Class representing operation in formula. See OperationProxy for
+/// methods documentation
 class Operation {
     using UnaryFunction  = std::function<ADT(const ADT&)>;
     using BinaryFunction = std::function<ADT(const ADT&, const ADT&)>;
@@ -22,10 +24,10 @@ class Operation {
     unsigned int getPriority() const { return priority_; }
     unsigned int getArity() const { return arity_; }
 
-    ADT         execute(const ADT& a) const;
-    ADT         execute(const ADT& a, const ADT& b) const;
-    ADT         execute(const std::vector<ADT>& args) const;
-    std::string toString() const { return name_; }
+    ADT          execute(const ADT& a) const;
+    ADT          execute(const ADT& a, const ADT& b) const;
+    ADT          execute(const std::vector<ADT>& args) const;
+    std::string  toString() const { return name_; }
 
     Operation(UnaryFunction func, const std::string& name,
               unsigned int priority)
@@ -34,7 +36,6 @@ class Operation {
               unsigned int priority)
         : function_(func), name_(name), priority_(priority), arity_(2) {}
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Operation, name_);
    private:
     std::variant<UnaryFunction, BinaryFunction> function_;
     std::string                                 name_;

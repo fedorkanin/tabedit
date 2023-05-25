@@ -10,7 +10,7 @@ struct AdditionVisitor {
     AbstractDataType operator()(const T1& a, const T2& b) const;
 };
 
-/// @brief Addition operation visitor
+/// @brief Visitor for addition operation
 /// @tparam T1 First operand type
 /// @tparam T2 Second operand type
 /// @param a First operand

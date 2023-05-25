@@ -47,6 +47,14 @@ bool CellCoord::isValidCoord(std::string raw_coord) {
     }
 }
 
+bool CellCoord::operator==(const CellCoord& other) const {
+    return row_ == other.row_ && col_ == other.col_;
+}
+
+bool CellCoord::operator<(const CellCoord& other) const {
+    return row_ < other.row_ || (row_ == other.row_ && col_ < other.col_);
+}
+
 std::string CellCoord::toString() const {
     std::string col_str;
     int         col_num = col_ + 1;
@@ -67,4 +75,13 @@ std::string CellCoord::getColName(unsigned int col) {
         col_num /= ALPHABET_SIZE;
     }
     return col_str;
+}
+
+std::ostream& operator<<(std::ostream& os, const CellCoord& coord) {
+    os << coord.toString();
+    return os;
+}
+
+void to_json(nlohmann::json& j, const CellCoord& p) {
+    j = nlohmann::json(p.toString());
 }

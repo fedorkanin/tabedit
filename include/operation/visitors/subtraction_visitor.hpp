@@ -10,13 +10,13 @@ struct SubtractionVisitor {
     AbstractDataType operator()(const T1& a, const T2& b) const;
 };
 
-/// @brief Visitor for subtraction operation
+/// @brief Visitor for subtraction operation (binary minus)
 /// @tparam T1 First operand type
 /// @tparam T2 Second operand type
 /// @param a first operand
 /// @param b second operand
-/// @return Double or Integer result of the subtraction
 /// @ingroup visitors
+/// @return Double or Integer result of the subtraction
 template <typename T1, typename T2>
 inline AbstractDataType SubtractionVisitor::operator()(const T1& a,
                                                        const T2& b) const {

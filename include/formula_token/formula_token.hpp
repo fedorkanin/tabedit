@@ -5,9 +5,13 @@
 
 #include "../../libs/json.hpp"
 
+/// @brief Abstract class for all formula tokens: operands, operations,
+/// parenthesis, coordinates
 class FormulaToken {
    public:
     virtual ~FormulaToken() = default;
+
+    /// @brief Enum class for token types. Used for safe runtime type checking
     enum class TokenType {
         OPERATION,
         PARENTHESIS,
@@ -18,7 +22,6 @@ class FormulaToken {
         NOTYPE
     };
 
-    virtual std::string toString() const   = 0;
-    using json                             = nlohmann::json;
-    virtual TokenType getTokenType() const = 0;
+    virtual std::string toString() const     = 0;
+    virtual TokenType   getTokenType() const = 0;
 };

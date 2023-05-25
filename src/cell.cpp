@@ -19,11 +19,7 @@ std::string Cell::dump() const {
     if (hasValue()) result += std::visit(ToStringVisitor(), value_.value());
     if (hasFormula()) result += "=" + formula_ptr_->toString();
     if (result.empty()) result = "Empty cell\n";
-    if (hasDependants()) {
-        result += " dependants: ";
-        for (const auto& dependant : dependants_)
-            result += dependant.toString() + " ";
-    }
+
     return result;
 }
 

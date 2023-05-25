@@ -1,0 +1,23 @@
+Why did I use std::visitor instead of standard dynamically-linked polymorphic 
+solution?
+
+
+The addition of two different types like String and Integer or Integer and
+Double is not possible in the single method polymorphically like
+    AbstractDataType->add(AbstractDataType other);
+where AbstractDataType is the parent class of String, Integer, Double.  
+In order to overcome this problem, several solutions can be used:
+    - RTTI via dynamic_cast
+        Unsafe and slow.     
+    - Double dispatch
+        Requires a lot of boilerplate code. In order to add two types, a minimum
+        of 6 methods are required (see https://en.wikipedia.org/wiki/Double_dispatch).
+    - Double dispatch with visitor
+        Better than double dispatch, but still requires a lot of boilerplate code.
+        Uses two virtual tables, not very fast. 
+    - Visitor via std::variant and std::visit
+        Referring to Klaus Iglberger's talk on CppCon 2022 "The Visitor design
+        pattern in Cpp", this is the best solution. It is fast, type-safe and 
+        extensible. I expirienced the ease of adding new operations myself when 
+        writing the code, so I really think this solution is the best. 
+

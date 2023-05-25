@@ -9,6 +9,11 @@ struct AbsVisitor {
     AbstractDataType operator()(const T& a) const;
 };
 
+/// @brief Visitor for abs operation
+/// @tparam T Operand type
+/// @param a Operand
+/// @ingroup visitors
+/// @return Result of the abs, type depends on the operand
 template <typename T>
 inline AbstractDataType AbsVisitor::operator()(const T& a) const {
     using namespace std;
