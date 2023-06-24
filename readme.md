@@ -36,7 +36,7 @@ This table editor allows users to create and edit tables. The cells in the table
 Cells can contain different data types, including strings, integers, and doubles. The type is determined dynamically using std::variant.
 
 ### Formulas
-Formulas are dynamically evaluated and can contain basic arithmetic operations (+, -, *, /) as well as functions like sin, cos, and abs. They can also include references to other cells in the form of coordinates. Formulas consist of a vector of FormulaTokens.
+Formulas are dynamically evaluated and can contain basic arithmetic operations (+, -, *, /) as well as functions like sin, cos, and abs. They can also include references to other cells in the form of coordinates. 
 
 ### Import & Export
 The table editor supports JSON import and export functionality through the `json` and `import` commands respectively.
